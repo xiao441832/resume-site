@@ -1,0 +1,24 @@
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+from flask import Flask
+
+from app.config import CONFIG_MAP
+from app.extensions import csrf, limiter
+
+
+def create_app(config_name: str | None = None) -> Flask:
+    load_dotenv()
+    selected_config = config_name or os.getenv("FLASK_ENV", "development")
+
+    app = Flask(__name__)
+    app.config.from_object(CONFIG_MAP.get(selected_config, CONFIG_MAP["development"]))
+
+    Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
+
+    csrf.init_app(app)
+    limiter.init_app(app)
+    app.extensions["limiter"] = limiter
+
+    return app
