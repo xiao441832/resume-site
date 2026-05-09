@@ -49,41 +49,89 @@ def query_one(
 
 def execute(sql: str, params: Iterable[Any] | dict[str, Any] | None = None) -> int:
     db = get_db()
-    with db.cursor() as cursor:
-        affected = cursor.execute(sql, params)
-    db.commit()
-    return affected
+    try:
+        with db.cursor() as cursor:
+            affected = cursor.execute(sql, params)
+        db.commit()
+        return affected
+    except Exception:
+        db.rollback()
+        raise
 
 
 def execute_many(sql: str, params: Iterable[Iterable[Any] | dict[str, Any]]) -> int:
     db = get_db()
-    with db.cursor() as cursor:
-        affected = cursor.executemany(sql, params)
-    db.commit()
-    return affected
+    try:
+        with db.cursor() as cursor:
+            affected = cursor.executemany(sql, params)
+        db.commit()
+        return affected
+    except Exception:
+        db.rollback()
+        raise
 
 
 def split_sql_script(script: str) -> list[str]:
-    lines: list[str] = []
-    for raw_line in script.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("--"):
-            continue
-        lines.append(raw_line)
+    statements: list[str] = []
+    current: list[str] = []
+    quote: str | None = None
+    escape_next = False
+    in_line_comment = False
+    index = 0
 
-    joined = "\n".join(lines)
-    return [
-        statement.strip().rstrip(";")
-        for statement in joined.split(";")
-        if statement.strip()
-    ]
+    while index < len(script):
+        char = script[index]
+        next_char = script[index + 1] if index + 1 < len(script) else ""
+
+        if in_line_comment:
+            if char in "\r\n":
+                in_line_comment = False
+                current.append(char)
+            index += 1
+            continue
+
+        if quote:
+            current.append(char)
+            if escape_next:
+                escape_next = False
+            elif char == "\\":
+                escape_next = True
+            elif char == quote:
+                quote = None
+            index += 1
+            continue
+
+        if char in {"'", '"'}:
+            quote = char
+            current.append(char)
+        elif char == "-" and next_char == "-":
+            in_line_comment = True
+            index += 1
+        elif char == ";":
+            statement = "".join(current).strip()
+            if statement:
+                statements.append(statement)
+            current = []
+        else:
+            current.append(char)
+
+        index += 1
+
+    statement = "".join(current).strip()
+    if statement:
+        statements.append(statement)
+    return statements
 
 
 def execute_script(script: str) -> int:
     db = get_db()
     statements = split_sql_script(script)
-    with db.cursor() as cursor:
-        for statement in statements:
-            cursor.execute(statement)
-    db.commit()
-    return len(statements)
+    try:
+        with db.cursor() as cursor:
+            for statement in statements:
+                cursor.execute(statement)
+        db.commit()
+        return len(statements)
+    except Exception:
+        db.rollback()
+        raise
