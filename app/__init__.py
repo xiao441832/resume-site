@@ -24,8 +24,9 @@ def create_app(config_name: str | None = None) -> Flask:
     limiter.init_app(app)
     app.extensions["limiter"] = limiter
 
-    from app import db
+    from app import cli, db
 
     app.teardown_appcontext(db.close_db)
+    cli.register_cli(app)
 
     return app
