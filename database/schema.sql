@@ -3,13 +3,13 @@ CREATE TABLE IF NOT EXISTS admin_users (
     username VARCHAR(80) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     display_name VARCHAR(120) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     last_login_at DATETIME NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_admin_users_username (username)
+    UNIQUE KEY uq_admin_users_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS profile (
@@ -18,14 +18,14 @@ CREATE TABLE IF NOT EXISTS profile (
     title VARCHAR(160) NOT NULL,
     city VARCHAR(120) NULL,
     email VARCHAR(255) NULL,
-    phone VARCHAR(60) NULL,
+    phone VARCHAR(80) NULL,
     wechat VARCHAR(120) NULL,
     github_url VARCHAR(255) NULL,
     website_url VARCHAR(255) NULL,
     avatar_path VARCHAR(255) NULL,
     resume_file_path VARCHAR(255) NULL,
     summary TEXT NULL,
-    job_status VARCHAR(120) NULL,
+    job_status VARCHAR(160) NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS skills (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(120) NOT NULL,
     category VARCHAR(120) NOT NULL,
-    proficiency TINYINT UNSIGNED NULL,
+    proficiency TINYINT UNSIGNED NOT NULL DEFAULT 80,
     icon VARCHAR(120) NULL,
     color VARCHAR(32) NULL,
     sort_order INT NOT NULL DEFAULT 0,
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS experiences (
     company VARCHAR(160) NOT NULL,
     position VARCHAR(160) NOT NULL,
     location VARCHAR(120) NULL,
-    start_date DATE NOT NULL,
+    start_date DATE NULL,
     end_date DATE NULL,
     is_current TINYINT(1) NOT NULL DEFAULT 0,
     description TEXT NULL,
@@ -146,7 +146,8 @@ CREATE TABLE IF NOT EXISTS uploads (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_uploads_uploader_id (uploader_id),
-    CONSTRAINT fk_uploads_uploader
+    KEY idx_uploads_purpose_created (upload_purpose, created_at),
+    CONSTRAINT fk_uploads_admin_user
         FOREIGN KEY (uploader_id) REFERENCES admin_users (id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -159,5 +160,5 @@ CREATE TABLE IF NOT EXISTS site_settings (
     description VARCHAR(255) NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_site_settings_key (setting_key)
+    UNIQUE KEY uq_site_settings_key (setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
