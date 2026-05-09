@@ -26,6 +26,7 @@ class BaseConfig:
     SESSION_COOKIE_SECURE = _bool_env("SESSION_COOKIE_SECURE", False)
     WTF_CSRF_ENABLED = True
     RATELIMIT_ENABLED = True
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
 
 
 class DevelopmentConfig(BaseConfig):
@@ -48,3 +49,34 @@ CONFIG_MAP = {
     "testing": TestingConfig,
     "production": ProductionConfig,
 }
+
+
+def apply_env_config(app) -> None:
+    app.config.update(
+        SECRET_KEY=os.getenv("SECRET_KEY", app.config["SECRET_KEY"]),
+        MYSQL_HOST=os.getenv("MYSQL_HOST", app.config["MYSQL_HOST"]),
+        MYSQL_PORT=int(os.getenv("MYSQL_PORT", str(app.config["MYSQL_PORT"]))),
+        MYSQL_USER=os.getenv("MYSQL_USER", app.config["MYSQL_USER"]),
+        MYSQL_PASSWORD=os.getenv("MYSQL_PASSWORD", app.config["MYSQL_PASSWORD"]),
+        MYSQL_DATABASE=os.getenv("MYSQL_DATABASE", app.config["MYSQL_DATABASE"]),
+        MYSQL_CHARSET=os.getenv("MYSQL_CHARSET", app.config["MYSQL_CHARSET"]),
+        MAX_IMAGE_UPLOAD_MB=int(
+            os.getenv("MAX_IMAGE_UPLOAD_MB", str(app.config["MAX_IMAGE_UPLOAD_MB"]))
+        ),
+        MAX_PDF_UPLOAD_MB=int(
+            os.getenv("MAX_PDF_UPLOAD_MB", str(app.config["MAX_PDF_UPLOAD_MB"]))
+        ),
+        SESSION_COOKIE_SECURE=_bool_env(
+            "SESSION_COOKIE_SECURE", app.config["SESSION_COOKIE_SECURE"]
+        ),
+        RATELIMIT_STORAGE_URI=os.getenv(
+            "RATELIMIT_STORAGE_URI", app.config["RATELIMIT_STORAGE_URI"]
+        ),
+    )
+
+
+def validate_production_config(app) -> None:
+    secret_key = str(app.config.get("SECRET_KEY") or "").strip()
+    if not secret_key or secret_key == "dev-secret-change-me":
+        raise RuntimeError("SECRET_KEY must be set to a secure value in production.")
+    app.config["SESSION_COOKIE_SECURE"] = True
