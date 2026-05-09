@@ -30,6 +30,14 @@ def test_save_upload_rejects_disallowed_extension(app, tmp_path):
             save_upload(make_file("shell.exe", "application/octet-stream"), "avatar")
 
 
+def test_save_upload_rejects_mismatched_mime_type(app, tmp_path):
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)
+
+    with app.app_context():
+        with pytest.raises(UploadError, match="MIME 类型不匹配"):
+            save_upload(make_file("avatar.png", "application/pdf"), "avatar")
+
+
 def test_save_upload_rejects_large_pdf(app, tmp_path):
     app.config["UPLOAD_FOLDER"] = str(tmp_path)
     app.config["MAX_PDF_UPLOAD_MB"] = 1

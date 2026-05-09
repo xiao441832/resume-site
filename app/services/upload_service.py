@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 
 IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
 PDF_EXTENSIONS = {"pdf"}
+IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+PDF_MIME_TYPES = {"application/pdf"}
 IMAGE_PURPOSES = {"avatar", "project_cover", "certificate_image"}
 PDF_PURPOSES = {"resume"}
 
@@ -36,10 +38,22 @@ def allowed_extensions_for(purpose: str) -> set[str]:
     raise UploadError("未知的上传用途。")
 
 
+def allowed_mime_types_for(purpose: str) -> set[str]:
+    if purpose in PDF_PURPOSES:
+        return PDF_MIME_TYPES
+    if purpose in IMAGE_PURPOSES:
+        return IMAGE_MIME_TYPES
+    raise UploadError("未知的上传用途。")
+
+
 def save_upload(file: FileStorage, purpose: str) -> dict:
     ext = extension_for(file.filename)
     if ext not in allowed_extensions_for(purpose):
         raise UploadError("不支持的文件类型。")
+
+    mime_type = file.content_type or "application/octet-stream"
+    if mime_type not in allowed_mime_types_for(purpose):
+        raise UploadError("文件 MIME 类型不匹配。")
 
     file.stream.seek(0, 2)
     size = file.stream.tell()
@@ -58,7 +72,7 @@ def save_upload(file: FileStorage, purpose: str) -> dict:
         "original_filename": file.filename,
         "saved_filename": saved_filename,
         "file_path": f"uploads/{saved_filename}",
-        "mime_type": file.content_type or "application/octet-stream",
+        "mime_type": mime_type,
         "file_size": size,
         "upload_purpose": purpose,
     }
