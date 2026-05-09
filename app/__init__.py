@@ -30,7 +30,9 @@ def create_app(config_name: str | None = None) -> Flask:
     cli.register_cli(app)
 
     from app.auth.routes import auth_bp
+    from app.public.routes import public_bp
 
+    app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
 
     @app.route("/admin")

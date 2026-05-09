@@ -1,0 +1,222 @@
+:root {
+  --brand: #2f6f5e;
+  --brand-strong: #235447;
+  --ink: #1f2933;
+  --muted: #64707d;
+  --line: #d8dee4;
+  --paper: #ffffff;
+  --soft: #f4f7f6;
+  --accent: #b8563c;
+}
+
+body {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  color: var(--brand-strong);
+}
+
+.btn {
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background-color: var(--brand);
+  border-color: var(--brand);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--brand-strong);
+  border-color: var(--brand-strong);
+}
+
+.hero-section {
+  padding: 72px 0 56px;
+  background: linear-gradient(180deg, #f8faf9 0%, #ffffff 100%);
+}
+
+.hero-summary {
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.section-block {
+  padding: 64px 0;
+}
+
+.bg-soft {
+  background: var(--soft);
+}
+
+.section-title {
+  margin-bottom: 28px;
+  font-size: 1.65rem;
+  font-weight: 700;
+}
+
+.content-card,
+.profile-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+}
+
+.profile-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.profile-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--soft);
+}
+
+.profile-avatar-placeholder {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--brand);
+  font-size: 4rem;
+  font-weight: 700;
+}
+
+.profile-meta div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.profile-meta dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.profile-meta dd {
+  margin-bottom: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.skill-row + .skill-row {
+  margin-top: 18px;
+}
+
+.progress {
+  height: 10px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #e7ecea;
+}
+
+.progress-bar {
+  background-color: var(--accent);
+}
+
+.timeline {
+  position: relative;
+  display: grid;
+  gap: 20px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 8px;
+  width: 2px;
+  background: var(--line);
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 32px;
+}
+
+.timeline-dot {
+  position: absolute;
+  top: 12px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--soft);
+}
+
+.project-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.project-cover {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--soft);
+}
+
+.project-cover-placeholder {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--brand);
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.project-body {
+  padding: 22px;
+}
+
+.message-form textarea {
+  resize: vertical;
+}
+
+.site-footer {
+  padding: 28px 0;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  background: #fbfcfc;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--brand);
+  box-shadow: 0 8px 20px rgba(31, 41, 51, 0.18);
+}
+
+@media (max-width: 767.98px) {
+  .hero-section {
+    padding: 48px 0 40px;
+  }
+
+  .section-block {
+    padding: 44px 0;
+  }
+
+  .content-card,
+  .profile-panel {
+    padding: 20px;
+  }
+}
