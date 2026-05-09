@@ -29,4 +29,12 @@ def create_app(config_name: str | None = None) -> Flask:
     app.teardown_appcontext(db.close_db)
     cli.register_cli(app)
 
+    from app.auth.routes import auth_bp
+
+    app.register_blueprint(auth_bp)
+
+    @app.route("/admin")
+    def temporary_admin_dashboard():
+        return "Admin dashboard"
+
     return app
