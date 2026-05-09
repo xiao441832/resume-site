@@ -37,14 +37,16 @@
           {% endif %}
           <div class="d-flex flex-wrap gap-2 mt-4">
             {% if profile.email %}<a class="btn btn-primary" href="mailto:{{ profile.email }}">发送邮件</a>{% endif %}
-            {% if profile.resume_file_path %}<a class="btn btn-outline-secondary" href="{{ profile.resume_file_path }}">下载简历</a>{% endif %}
+            {% set resume_url = static_upload_url(profile.resume_file_path) %}
+            {% if resume_url %}<a class="btn btn-outline-secondary" href="{{ resume_url }}">下载简历</a>{% endif %}
             <a class="btn btn-outline-secondary" href="#contact">留言</a>
           </div>
         </div>
         <div class="col-lg-4">
           <div class="profile-panel">
-            {% if profile.avatar_path %}
-              <img class="profile-avatar" src="{{ profile.avatar_path }}" alt="{{ profile.name }}">
+            {% set avatar_url = static_upload_url(profile.avatar_path) %}
+            {% if avatar_url %}
+              <img class="profile-avatar" src="{{ avatar_url }}" alt="{{ profile.name }}">
             {% else %}
               <div class="profile-avatar profile-avatar-placeholder">{{ profile.name|default('简历')|first }}</div>
             {% endif %}
@@ -52,8 +54,10 @@
               {% if profile.city %}<div><dt>城市</dt><dd>{{ profile.city }}</dd></div>{% endif %}
               {% if profile.phone %}<div><dt>电话</dt><dd>{{ profile.phone }}</dd></div>{% endif %}
               {% if profile.wechat %}<div><dt>微信</dt><dd>{{ profile.wechat }}</dd></div>{% endif %}
-              {% if profile.github_url %}<div><dt>GitHub</dt><dd><a href="{{ profile.github_url }}">{{ profile.github_url }}</a></dd></div>{% endif %}
-              {% if profile.website_url %}<div><dt>网站</dt><dd><a href="{{ profile.website_url }}">{{ profile.website_url }}</a></dd></div>{% endif %}
+              {% set github_url = safe_public_url(profile.github_url) %}
+              {% if github_url %}<div><dt>GitHub</dt><dd><a href="{{ github_url }}">{{ github_url }}</a></dd></div>{% endif %}
+              {% set website_url = safe_public_url(profile.website_url) %}
+              {% if website_url %}<div><dt>网站</dt><dd><a href="{{ website_url }}">{{ website_url }}</a></dd></div>{% endif %}
             </dl>
           </div>
         </div>
@@ -121,8 +125,9 @@
         {% for project in projects %}
           <div class="col-md-6 col-xl-4">
             <article class="content-card project-card h-100">
-              {% if project.cover_image_path %}
-                <img class="project-cover" src="{{ project.cover_image_path }}" alt="{{ project.name }}">
+              {% set cover_url = static_upload_url(project.cover_image_path) %}
+              {% if cover_url %}
+                <img class="project-cover" src="{{ cover_url }}" alt="{{ project.name }}">
               {% else %}
                 <div class="project-cover project-cover-placeholder">{{ project.name|first }}</div>
               {% endif %}
@@ -132,8 +137,10 @@
                 {% if project.summary %}<p>{{ project.summary }}</p>{% endif %}
                 {% if project.tech_stack %}<p class="small text-muted">{{ project.tech_stack }}</p>{% endif %}
                 <div class="d-flex gap-2 flex-wrap">
-                  {% if project.project_url %}<a class="btn btn-sm btn-outline-primary" href="{{ project.project_url }}">查看项目</a>{% endif %}
-                  {% if project.source_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ project.source_url }}">源码</a>{% endif %}
+                  {% set project_url = safe_public_url(project.project_url) %}
+                  {% if project_url %}<a class="btn btn-sm btn-outline-primary" href="{{ project_url }}">查看项目</a>{% endif %}
+                  {% set source_url = safe_public_url(project.source_url) %}
+                  {% if source_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ source_url }}">源码</a>{% endif %}
                 </div>
               </div>
             </article>

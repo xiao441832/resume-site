@@ -1,4 +1,5 @@
 from collections import defaultdict
+from urllib.parse import urlparse
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
@@ -7,6 +8,7 @@ from app.extensions import limiter
 from app.public.forms import MessageForm
 
 public_bp = Blueprint("public", __name__)
+SAFE_LINK_SCHEMES = {"http", "https", "mailto"}
 
 
 def get_settings() -> dict[str, str]:
@@ -23,6 +25,26 @@ def group_skills(skills: list[dict]) -> dict[str, list[dict]]:
     for skill in skills:
         grouped[skill.get("category") or "其他"].append(skill)
     return dict(grouped)
+
+
+@public_bp.app_template_global()
+def static_upload_url(path: str | None) -> str:
+    cleaned = (path or "").strip().replace("\\", "/").lstrip("/")
+    parsed = urlparse(cleaned)
+    if not cleaned or parsed.scheme or cleaned.startswith("//"):
+        return ""
+    if cleaned.startswith("static/"):
+        cleaned = cleaned.removeprefix("static/")
+    return url_for("static", filename=cleaned)
+
+
+@public_bp.app_template_global()
+def safe_public_url(url: str | None) -> str:
+    value = (url or "").strip()
+    parsed = urlparse(value)
+    if parsed.scheme.lower() in SAFE_LINK_SCHEMES and parsed.netloc:
+        return value
+    return ""
 
 
 def load_homepage_data() -> dict:
