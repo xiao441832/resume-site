@@ -15,10 +15,10 @@ def test_build_connection_kwargs_uses_app_config(app):
 
 def test_split_sql_script_ignores_empty_statements_and_line_comments():
     script = """
-    -- first table
+    -- 第一张表
     CREATE TABLE one (id INT);
 
-    -- second table
+    -- 第二张表
     CREATE TABLE two (id INT);
     """
 

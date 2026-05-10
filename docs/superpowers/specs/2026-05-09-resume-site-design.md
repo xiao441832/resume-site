@@ -1,70 +1,68 @@
-# Python + MySQL Personal Resume Site Design
+# Python + MySQL 个人简历网站设计说明
 
-Date: 2026-05-09
+日期：2026-05-09
 
-## 1. Goal
+## 1. 目标
 
-Build a responsive personal resume website using Python, Flask, MySQL, Bootstrap, Jinja2, and server-side rendering. The site has a public resume homepage and a custom administrator backend for managing resume content.
+开发一个基于 Python、Flask、MySQL、Bootstrap 和 Jinja2 的响应式个人简历网站。网站采用服务端渲染，包含前台简历展示页面和自定义后台管理系统。
 
-The database already exists on a separate database server, but it is empty. The project must therefore include a clear database schema, seed data, and an initialization workflow that supports both manual execution through Aliyun DMS and command-line initialization from the web server.
+数据库已经在独立数据库服务器上创建好，但目前是空库。因此项目需要提供清晰的数据表结构、初始化数据和初始化流程，既支持通过阿里云 DMS 手动执行 SQL，也支持在 Web 服务器命令行中通过 Flask CLI 初始化。
 
-## 2. Confirmed Technology Stack
+## 2. 已确认技术栈
 
-Frontend:
+前端：
 
-- HTML5 for page structure.
-- CSS3 for page styling.
-- Bootstrap 5 for responsive layout, buttons, tables, forms, and cards.
-- JavaScript and optional jQuery for lightweight interactions.
-- Jinja2 templates rendered by Flask.
+- HTML5：页面结构。
+- CSS3：页面样式。
+- Bootstrap 5：响应式布局、按钮、表格、表单和卡片。
+- JavaScript 与 jQuery：轻量交互、图片预览、删除确认、返回顶部等。
+- Jinja2：由 Flask 在服务端渲染模板。
 
-Backend:
+后端：
 
-- Python 3.
-- Flask.
-- PyMySQL for MySQL access.
-- Werkzeug for password hashing and basic security utilities.
-- Flask-WTF for form validation and CSRF protection.
-- Flask-Limiter for login and message submission rate limiting.
-- Gunicorn for production runtime.
-- Nginx for reverse proxy and static file service.
+- Python 3。
+- Flask。
+- PyMySQL：连接 MySQL。
+- Werkzeug：密码哈希和基础安全工具。
+- Flask-WTF：表单校验和 CSRF 防护。
+- Flask-Limiter：登录和留言限速。
+- Gunicorn：生产环境运行 Flask 应用。
+- Nginx：反向代理和静态资源服务。
 
-Database:
+数据库：
 
-- MySQL 8.0.
-- Aliyun RDS MySQL compatible deployment.
-- DMS for online schema execution and data management.
-- `utf8mb4` character set for Chinese and special characters.
+- MySQL 8.0。
+- 兼容阿里云 RDS MySQL。
+- 可通过 DMS 在线执行建表 SQL。
+- 使用 `utf8mb4` 字符集，支持中文和特殊字符。
 
-Deployment:
+部署：
 
-- Linux web server.
-- Gunicorn application process.
-- Nginx reverse proxy.
-- systemd service management.
-- Flask server-side rendering, B/S architecture, one MySQL database instance.
+- Linux Web 服务器。
+- Gunicorn 应用进程。
+- Nginx 反向代理。
+- systemd 服务管理。
+- Flask 服务端渲染、B/S 架构、单 MySQL 数据库实例。
 
-Explicit frontend exclusions:
+明确不使用：
 
-- No Vue.
-- No React.
-- No Angular.
-- No frontend router.
-- No frontend state management.
-- No separated frontend/backend build deployment.
+- Vue。
+- React。
+- Angular。
+- 前端路由。
+- 前端状态管理。
+- 前后端分离打包部署。
 
-## 3. Recommended Implementation Approach
+## 3. 实现方式
 
-Use a modular Flask application with explicit SQL and PyMySQL.
+采用模块化 Flask 应用，使用蓝图拆分前台、登录认证和后台管理。数据库访问使用 PyMySQL 和参数化 SQL，不引入 ORM，便于检查 SQL 行为，也便于将 `database/schema.sql` 直接复制到阿里云 DMS 执行。
 
-This approach keeps the project aligned with the requested stack and makes database behavior easy to inspect. It avoids ORM abstraction and keeps SQL files usable in Aliyun DMS. The backend will be split into Flask blueprints for public pages, authentication, and administration.
+项目提供两种初始化方式：
 
-The project will provide both:
+- `database/schema.sql`：用于 DMS 或命令行建表。
+- `flask init-db` 与 `flask seed-db`：用于在 Web 服务器命令行初始化表和默认数据。
 
-- `database/schema.sql` for DMS/manual table creation.
-- Flask CLI commands such as `flask init-db` and `flask seed-db` for command-line initialization.
-
-## 4. Project Structure
+## 4. 项目结构
 
 ```text
 resume-site/
@@ -73,33 +71,11 @@ resume-site/
     config.py
     db.py
     auth/
-      routes.py
-      forms.py
     public/
-      routes.py
-      forms.py
     admin/
-      routes.py
-      forms.py
     services/
-      upload_service.py
     templates/
-      base.html
-      public/
-        index.html
-      admin/
-        layout.html
-        dashboard.html
-        list.html
-        form.html
-      auth/
-        login.html
     static/
-      css/
-        main.css
-      js/
-        main.js
-      uploads/
   database/
     schema.sql
     seed.sql
@@ -114,234 +90,189 @@ resume-site/
   README.md
 ```
 
-Primary boundaries:
+主要职责：
 
-- `public`: public resume homepage and message submission.
-- `auth`: administrator login, logout, session handling, and login rate limiting.
-- `admin`: backend CRUD screens.
-- `db.py`: central MySQL connection, query, and transaction helpers.
-- `services/upload_service.py`: file upload validation and storage.
-- `database`: schema and seed SQL suitable for DMS execution.
-- `deployment`: production deployment examples.
+- `public`：前台简历首页和留言提交。
+- `auth`：管理员登录、退出、Session 管理和登录限速。
+- `admin`：后台管理页面和 CRUD 功能。
+- `db.py`：MySQL 连接、查询、事务和 SQL 脚本执行。
+- `services/upload_service.py`：上传文件校验、命名和保存。
+- `database`：适合 DMS 执行的建表和初始化 SQL。
+- `deployment`：生产部署示例。
 
-## 5. Database Design
+## 5. 数据库设计
 
-All tables use MySQL 8.0, InnoDB, `utf8mb4`, and `utf8mb4_unicode_ci`. Primary keys use `BIGINT UNSIGNED AUTO_INCREMENT`. Sortable content uses `sort_order`. Publicly visible content uses `is_active`.
+所有表使用 MySQL 8.0、InnoDB、`utf8mb4`、`utf8mb4_unicode_ci`。主键使用 `BIGINT UNSIGNED AUTO_INCREMENT`。需要排序的内容使用 `sort_order`，前台可见状态使用 `is_active`。
 
-Core tables:
+核心表：
 
-- `admin_users`: administrator accounts. Stores username, password hash, display name, email, enabled state, last login time, and timestamps. Passwords are never stored in plain text.
-- `profile`: personal profile, normally one active row. Stores name, title, city, email, phone, WeChat, GitHub, personal site, avatar path, resume file path, summary, and job status.
-- `skills`: skill name, category, proficiency percentage, optional icon/color, sort order, visible state, and timestamps.
-- `experiences`: work or internship experience. Stores company, position, location, start date, end date, current flag, description, sort order, visible state, and timestamps.
-- `projects`: project experience. Stores project name, role, technology stack, project URL, source URL, cover image, start/end dates, summary, highlights, sort order, visible state, and timestamps.
-- `education`: school, major, degree, location, start/end dates, description, sort order, visible state, and timestamps.
-- `certificates`: certificate name, issuer, issue date, certificate URL, certificate image, description, sort order, visible state, and timestamps.
-- `messages`: visitor messages. Stores name, email, optional phone, content, IP address, user agent, status, administrator note, and timestamps.
+- `admin_users`：管理员账号，保存用户名、密码哈希、显示名、邮箱、启用状态和最后登录时间。密码不明文保存。
+- `profile`：个人资料，通常只有一条启用记录，保存姓名、标题、城市、联系方式、头像路径、简历文件路径、简介和求职状态。
+- `skills`：技能名称、分类、熟练度、图标、颜色、排序和展示状态。
+- `experiences`：工作或实习经历。
+- `projects`：项目经历、技术栈、项目链接、源码链接、封面图、简介和亮点。
+- `education`：教育经历。
+- `certificates`：证书信息。
+- `messages`：访客留言、来源 IP、浏览器信息、处理状态和管理员备注。
 
-Auxiliary tables:
+辅助表：
 
-- `uploads`: uploaded file records. Stores original filename, saved filename, relative path, MIME type, file size, upload purpose, uploader ID, and created time.
-- `site_settings`: key-value site settings. Stores setting key, value, type, description, and updated time.
+- `uploads`：上传文件记录，只保存文件元数据和相对路径。
+- `site_settings`：站点标题、SEO 描述、备案信息、留言开关等键值配置。
 
-Database safety requirements:
+数据库安全要求：
 
-- Use parameterized SQL for all runtime queries.
-- Use a dedicated MySQL account with permissions limited to the resume database.
-- Store only relative paths for uploaded files; files live on the web server.
-- Do not store uploaded binary data in MySQL.
-- Create initial administrator through seed data or `flask seed-db`.
-- The initial administrator password is supplied through environment configuration.
+- 所有运行时 SQL 使用参数化查询。
+- 使用专用 MySQL 账号，并限制在简历数据库范围内。
+- 上传文件只保存到 Web 服务器，MySQL 中只保存相对路径。
+- 不在 MySQL 中保存上传文件二进制内容。
+- 初始管理员通过环境变量和 `flask seed-db` 创建。
 
-## 6. Public Website Design
+## 6. 前台网站设计
 
-The public site is a single responsive resume homepage served from `GET /`.
+前台为单页简历首页，由 `GET /` 渲染。
 
-Sections:
+页面模块：
 
-- Navigation bar with site name and anchors for skills, experience, projects, education, certificates, and contact.
-- Hero/profile area with avatar, name, title, city, summary, contact button, and resume download button.
-- Skills grouped by category, displayed with badges or Bootstrap progress bars.
-- Work/internship timeline with company, position, date range, location, and description.
-- Project card grid with cover image, name, tech stack, summary, highlights, project URL, and source URL.
-- Education section using a compact list or timeline.
-- Certificates section using cards or a list, optionally with images and external links.
-- Contact/message form with name, email, optional phone, and message content.
-- Footer with copyright, record filing information, and social links.
-- Back-to-top button controlled by JavaScript/jQuery.
+- 导航栏：站点名称和页面锚点。
+- 个人简介区：头像、姓名、职位标题、城市、简介、联系按钮和简历下载按钮。
+- 技能区：按分类展示技能，使用徽章或进度条。
+- 经历区：用时间线展示工作或实习经历。
+- 项目区：卡片网格展示项目封面、技术栈、简介、亮点和链接。
+- 教育区：紧凑列表或时间线。
+- 证书区：卡片或列表，可展示图片和外链。
+- 联系区：姓名、邮箱、手机号和留言内容表单。
+- 页脚：版权、备案信息和社交链接。
+- 返回顶部按钮：由 JavaScript/jQuery 控制。
 
-Responsive behavior:
+响应式要求：
 
-- Desktop: centered content container, project cards in two or three columns.
-- Tablet: project cards in two columns.
-- Mobile: collapsed navigation, one-column content, compact timeline layout.
-- Avatar and cover images use stable aspect ratios to reduce layout shifts.
+- 桌面端：内容居中，项目卡片两到三列。
+- 平板端：项目卡片两列。
+- 移动端：导航折叠，内容单列展示。
+- 头像和封面图保持稳定尺寸，减少布局跳动。
 
-## 7. Administrator Backend Design
+## 7. 后台管理设计
 
-The custom administrator backend is under `/admin` and requires login.
+后台路径统一在 `/admin` 下，所有管理页面都要求登录。
 
-Pages:
+页面：
 
-- `/admin/login`: administrator login page using Flask-WTF, CSRF protection, and Flask-Limiter.
-- `/admin`: dashboard with counts for skills, projects, messages, unread messages, and recent messages.
-- `/admin/profile`: edit personal profile, avatar, and resume PDF.
-- `/admin/skills`: list, create, edit, delete, show/hide, and sort skills.
-- `/admin/experiences`: manage work and internship experience.
-- `/admin/projects`: manage project experience and project cover images.
-- `/admin/education`: manage education records.
-- `/admin/certificates`: manage certificates and certificate images.
-- `/admin/messages`: view messages, mark status, add administrator note, and delete messages.
-- `/admin/settings`: manage site title, SEO description, record filing text, and message form availability.
-- `/admin/logout`: log out and clear session.
+- `/admin/login`：管理员登录。
+- `/admin`：仪表盘，展示技能、项目、留言和未读留言数量。
+- `/admin/profile`：管理个人资料、头像和简历 PDF。
+- `/admin/skills`：管理技能。
+- `/admin/experiences`：管理工作和实习经历。
+- `/admin/projects`：管理项目经历和项目封面。
+- `/admin/education`：管理教育经历。
+- `/admin/certificates`：管理证书和证书图片。
+- `/admin/messages`：查看留言、更新状态、添加备注、删除留言。
+- `/admin/settings`：管理站点标题、SEO 描述、备案信息和留言开关。
+- `/admin/logout`：退出登录。
 
-Backend UI:
+后台界面：
 
-- Bootstrap 5 top bar and sidebar.
-- Table list pages with search field, status badges, edit/delete buttons, and enable/disable controls.
-- Bootstrap form pages.
-- Delete confirmation dialogs.
-- Upload image preview using JavaScript/jQuery.
-- Flask flash messages rendered as Bootstrap alerts.
+- Bootstrap 5 顶栏和侧边栏。
+- 表格列表页、状态徽章、编辑/删除按钮。
+- Bootstrap 表单页面。
+- 删除确认提示。
+- 上传图片预览。
+- Flash 消息以 Bootstrap alert 展示。
 
-## 8. Routes and Data Flow
+## 8. 路由和数据流
 
-Public routes:
+前台：
 
-- `GET /`: read active profile, skills, experiences, projects, education, certificates, and settings, then render the public homepage.
-- `POST /messages`: validate CSRF and form fields, apply rate limit, check whether messages are enabled, insert into `messages`, and return a success or failure flash message.
+- `GET /`：读取启用的个人资料、技能、经历、项目、教育、证书和站点设置，渲染首页。
+- `POST /messages`：校验 CSRF 和表单字段，执行限速，检查留言开关，写入 `messages` 表并返回提示。
 
-Authentication routes:
+认证：
 
-- `GET /admin/login`: render login form.
-- `POST /admin/login`: validate credentials, set session, update last login time.
-- `POST /admin/logout`: clear session.
+- `GET /admin/login`：渲染登录表单。
+- `POST /admin/login`：校验账号密码，写入 Session，更新最后登录时间。
+- `POST /admin/logout`：清空 Session。
 
-Administration routes:
+后台：
 
-- `GET /admin`: dashboard.
-- `GET|POST /admin/profile`: edit profile.
-- `GET /admin/<module>`: list records.
-- `GET|POST /admin/<module>/new`: create record.
-- `GET|POST /admin/<module>/<id>/edit`: edit record.
-- `POST /admin/<module>/<id>/delete`: delete record.
-- `POST /admin/<module>/<id>/toggle`: enable or disable record.
-- `POST /admin/<module>/<id>/sort`: adjust sort order.
-- `POST /admin/messages/<id>/status`: update message status.
+- `GET /admin`：仪表盘。
+- `GET|POST /admin/profile`：编辑个人资料。
+- `GET /admin/<module>`：列表页。
+- `GET|POST /admin/<module>/new`：新增记录。
+- `GET|POST /admin/<module>/<id>/edit`：编辑记录。
+- `POST /admin/<module>/<id>/delete`：删除记录。
+- 留言状态、站点设置和上传文件通过对应后台路由处理。
 
-Public display flow:
+上传流程：
 
-1. Browser requests `/`.
-2. Flask reads visible resume content from remote MySQL.
-3. Jinja2 renders HTML.
-4. Bootstrap and custom CSS handle layout.
-5. JavaScript/jQuery handles small interactions.
+1. 管理员上传头像、简历 PDF、项目封面或证书图片。
+2. 服务端校验扩展名、MIME 类型和文件大小。
+3. 文件使用 UUID 命名，保存到 `app/static/uploads/`。
+4. MySQL 保存相对路径和上传元数据。
+5. 生产环境由 Nginx 提供静态访问。
 
-Message submission flow:
+## 9. 安全设计
 
-1. Visitor submits the message form.
-2. Flask-WTF validates CSRF and field constraints.
-3. Flask-Limiter applies a submission rate limit.
-4. Flask inserts the message into MySQL.
-5. The user sees a flash success or error message.
+- 使用 Werkzeug `generate_password_hash` 和 `check_password_hash` 处理管理员密码。
+- 所有表单使用 Flask-WTF CSRF 防护。
+- 登录限速，例如 `5 per minute`。
+- 留言提交限速，例如 `3 per minute`。
+- 所有数据库查询使用参数化 SQL。
+- 上传文件限制为图片和简历 PDF。
+- 限制上传大小，例如图片 2 MB，PDF 5 MB。
+- 上传文件名使用 UUID。
+- `SECRET_KEY` 从环境变量读取。
+- 开启 `SESSION_COOKIE_HTTPONLY=True`。
+- HTTPS 生产环境开启 `SESSION_COOKIE_SECURE=True`。
+- `.env` 不进入版本控制，只提交 `.env.example`。
 
-Administrator flow:
+## 10. 部署设计
 
-1. Administrator logs in.
-2. Session stores administrator ID.
-3. Protected routes require an authenticated session.
-4. Submitted forms pass Flask-WTF validation.
-5. PyMySQL executes parameterized CRUD SQL.
-6. Flask redirects with a flash message.
+Web 服务器和数据库服务器分开部署。
 
-Upload flow:
+Web 服务器：
 
-1. Administrator uploads an avatar, resume PDF, project cover, or certificate image.
-2. The server validates extension, MIME type, and file size.
-3. The file is saved under `app/static/uploads/` using a UUID filename.
-4. MySQL stores the relative path and upload metadata.
-5. In production, Nginx serves uploaded static files.
+- Linux。
+- Python 虚拟环境。
+- Flask 应用。
+- Gunicorn 进程。
+- Nginx 反向代理和静态资源服务。
+- systemd 管理进程。
 
-## 9. Security Design
+数据库服务器：
 
-- Use Werkzeug `generate_password_hash` and `check_password_hash` for administrator passwords.
-- Use Flask-WTF CSRF protection for all forms.
-- Rate-limit login attempts, for example `5 per minute`.
-- Rate-limit message submissions, for example `3 per minute`.
-- Use parameterized SQL for every database query.
-- Restrict upload types to images (`jpg`, `jpeg`, `png`, `webp`, `gif`) and PDF for resume files.
-- Restrict upload sizes, for example 2 MB for images and 5 MB for PDF files.
-- Generate uploaded filenames with UUIDs.
-- Read `SECRET_KEY` from environment variables.
-- Enable `SESSION_COOKIE_HTTPONLY=True`.
-- Enable `SESSION_COOKIE_SECURE=True` in HTTPS production deployments.
-- Keep `.env` out of version control and provide `.env.example`.
-- Use a least-privilege database account for the resume database.
+- 阿里云 RDS MySQL 8.0 或兼容 MySQL 8.0。
+- 数据库名已存在，当前为空库。
+- 通过 DMS 或 Flask CLI 初始化。
 
-## 10. Deployment Design
+部署步骤：
 
-The web server and database server are separate.
+1. 确认 RDS 数据库存在并使用 `utf8mb4`。
+2. 在 DMS 执行 `database/schema.sql`，或在 Web 服务器运行 `flask init-db`。
+3. 在 Web 服务器配置 `.env`。
+4. 运行 `flask seed-db` 创建初始管理员和默认内容。
+5. 使用 systemd 启动 Gunicorn。
+6. 配置 Nginx 代理域名到 Gunicorn，并服务静态资源和上传文件。
+7. 登录 `/admin/login` 更新简历内容。
 
-Web server:
+## 11. 测试策略
 
-- Linux.
-- Python virtual environment.
-- Flask application.
-- Gunicorn process.
-- Nginx reverse proxy and static file service.
-- systemd process management.
+- 数据库助手测试：连接参数、SQL 切分、事务回滚。
+- 登录认证测试：登录成功、登录失败、受保护路由。
+- 前台测试：首页渲染、上传路径、外链过滤、留言提交。
+- 后台测试：资源配置、列表渲染、个人信息、留言状态、站点设置。
+- 上传测试：允许类型、禁止类型、MIME 不匹配、大小限制。
 
-Database server:
+## 12. 验收标准
 
-- Aliyun RDS MySQL 8.0 or compatible MySQL 8.0 server.
-- Existing database name, currently empty.
-- Database initialized through DMS or Flask CLI.
-
-Configuration:
-
-- `.env` stores database host, port, database name, username, password, Flask secret key, administrator seed username, and administrator seed password.
-- `.env.example` documents required environment variables without real secrets.
-
-Deployment files:
-
-- `deployment/gunicorn.conf.py`
-- `deployment/nginx.conf.example`
-- `deployment/resume-site.service.example`
-
-Initialization workflow:
-
-1. Confirm the RDS database exists and uses `utf8mb4`.
-2. Execute `database/schema.sql` in Aliyun DMS, or run `flask init-db` from the web server.
-3. Configure `.env` on the web server.
-4. Run `flask seed-db` to create the initial administrator and optional sample content.
-5. Start Gunicorn through systemd.
-6. Configure Nginx to proxy the domain to Gunicorn and serve static/uploads.
-7. Log in to `/admin/login` and update resume content.
-
-## 11. Testing Strategy
-
-Tests should focus on behavior and risk:
-
-- Database helper tests for parameterized query execution and transaction handling.
-- Authentication tests for login success, login failure, logout, and protected route access.
-- Public route tests for homepage rendering with seeded resume data.
-- Message form tests for valid submission, invalid submission, disabled message setting, and rate-limited behavior.
-- Admin CRUD tests for at least one representative content module, then shared helper coverage for other modules.
-- Upload service tests for allowed file types, blocked file types, max size behavior, and UUID naming.
-
-Implementation should use test-driven development for new behavior: write the failing test first, confirm it fails for the expected reason, implement the smallest change, then confirm the test passes.
-
-## 12. Acceptance Criteria
-
-- The public homepage renders resume data from MySQL through Jinja2.
-- The homepage is responsive on desktop, tablet, and mobile.
-- The administrator can log in and log out.
-- The administrator can manage profile, skills, experiences, projects, education, certificates, messages, uploads, and settings.
-- Passwords are hashed and never stored in plain text.
-- Forms use CSRF protection.
-- Login and message submission are rate-limited.
-- SQL uses parameterized queries.
-- Uploads are validated and stored on the web server, with only paths stored in MySQL.
-- The project includes `schema.sql`, `seed.sql`, `flask init-db`, and `flask seed-db`.
-- The project includes deployment examples for Gunicorn, Nginx, and systemd.
-- The project includes `.env.example` and does not commit real secrets.
+- 前台首页能从 MySQL 读取数据并通过 Jinja2 渲染。
+- 页面在桌面、平板、移动端响应式展示。
+- 管理员可以登录和退出。
+- 管理员可以维护个人资料、技能、经历、项目、教育、证书、留言和站点设置。
+- 密码哈希保存，不明文存储。
+- 表单启用 CSRF 防护。
+- 登录和留言提交有限速。
+- SQL 使用参数化查询。
+- 上传文件保存在 Web 服务器，MySQL 只保存路径。
+- 项目包含 `schema.sql`、`seed.sql`、`flask init-db` 和 `flask seed-db`。
+- 项目包含 Gunicorn、Nginx、systemd 部署示例。
+- 项目包含 `.env.example`，不提交真实密钥。

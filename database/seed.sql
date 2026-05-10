@@ -1,9 +1,9 @@
 INSERT INTO site_settings (setting_key, setting_value, setting_type, description)
 VALUES
-    ('site_title', 'Resume Site', 'string', 'Public website title.'),
-    ('seo_description', 'Personal resume and portfolio site.', 'string', 'Short SEO description.'),
-    ('icp_text', '', 'string', 'ICP filing text displayed in the footer.'),
-    ('messages_enabled', '1', 'boolean', 'Whether the public contact form accepts messages.')
+    ('site_title', '个人简历网站', 'string', '前台网站标题。'),
+    ('seo_description', '个人简历、项目经历、技能与联系方式展示。', 'string', '页面 SEO 描述。'),
+    ('icp_text', '', 'string', '页脚展示的备案信息。'),
+    ('messages_enabled', '1', 'boolean', '是否开放前台留言表单。')
 ON DUPLICATE KEY UPDATE
     setting_value = VALUES(setting_value),
     setting_type = VALUES(setting_type),
@@ -21,12 +21,12 @@ INSERT INTO profile (
     is_active
 ) VALUES (
     1,
-    'Your Name',
-    'Software Engineer',
-    'Shanghai',
+    '你的姓名',
+    '软件工程师',
+    '上海',
     'admin@example.com',
-    'A concise personal summary for the public resume site.',
-    'Open to opportunities',
+    '这里填写一段适合展示在前台首页的个人简介。',
+    '正在寻找合适的机会',
     1
 )
 ON DUPLICATE KEY UPDATE

@@ -1,5 +1,5 @@
 [Unit]
-Description=Resume Site Gunicorn Service
+Description=个人简历网站 Gunicorn 服务
 After=network.target
 
 [Service]
