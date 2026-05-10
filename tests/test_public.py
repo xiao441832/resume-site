@@ -16,6 +16,7 @@ def test_homepage_renders_resume_data(client, monkeypatch):
 
     html = response.get_data(as_text=True)
     assert response.status_code == 200
+    assert 'rel="icon"' in html
     assert "张三" in html
     assert "Flask" in html
     assert "简历网站" in html

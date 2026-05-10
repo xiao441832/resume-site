@@ -4,8 +4,10 @@ from werkzeug.security import generate_password_hash
 def test_login_page_renders(client):
     response = client.get("/admin/login")
 
+    html = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "管理员登录" in response.get_data(as_text=True)
+    assert "管理员登录" in html
+    assert 'rel="icon"' in html
 
 
 def test_login_success_sets_session(client, monkeypatch):
