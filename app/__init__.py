@@ -9,12 +9,15 @@ from app.extensions import csrf, limiter
 
 
 def create_app(config_name: str | None = None) -> Flask:
-    load_dotenv()
     selected_config = config_name or os.getenv("FLASK_ENV", "development")
+    if config_name is None:
+        load_dotenv()
+        selected_config = os.getenv("FLASK_ENV", selected_config)
 
     app = Flask(__name__)
     app.config.from_object(CONFIG_MAP.get(selected_config, CONFIG_MAP["development"]))
-    apply_env_config(app)
+    if selected_config != "testing":
+        apply_env_config(app)
     if selected_config == "production":
         validate_production_config(app)
 

@@ -14,6 +14,16 @@ def test_create_app_uses_testing_config():
     assert Path(app.config["UPLOAD_FOLDER"]).name == "uploads"
 
 
+def test_create_app_testing_config_ignores_runtime_env(monkeypatch):
+    monkeypatch.setenv("MYSQL_HOST", "production.example.com")
+    monkeypatch.setenv("SECRET_KEY", "production-secret")
+
+    app = create_app("testing")
+
+    assert app.config["MYSQL_HOST"] == "localhost"
+    assert app.config["SECRET_KEY"] == "testing-secret"
+
+
 def test_create_app_registers_core_extensions():
     app = create_app("testing")
 

@@ -69,6 +69,13 @@ cp .env.example .env
 
 生产环境请编辑 `/opt/resume-site/.env`。建议使用足够长的随机 `SECRET_KEY`，设置 `SESSION_COOKIE_SECURE=1`。如果有多个 Gunicorn worker 或多台 Web 服务器，建议把 `RATELIMIT_STORAGE_URI` 配置为 Redis。
 
+如果 systemd 服务使用 `www-data` 运行应用，请让 `.env` 对服务用户可读，但不要公开给其他用户：
+
+```bash
+sudo chown root:www-data /opt/resume-site/.env
+sudo chmod 640 /opt/resume-site/.env
+```
+
 部署示例文件位于 `deployment/`：
 
 - `gunicorn.conf.py`
