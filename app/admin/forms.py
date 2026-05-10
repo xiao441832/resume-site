@@ -1,14 +1,16 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField
 from wtforms import (
     BooleanField,
     DateField,
     IntegerField,
+    SelectField,
     StringField,
     SubmitField,
     TextAreaField,
     URLField,
 )
-from wtforms.validators import DataRequired, Length, NumberRange, Optional
+from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional
 
 
 class SkillForm(FlaskForm):
@@ -75,4 +77,44 @@ class CertificateForm(FlaskForm):
     description = TextAreaField("描述", validators=[Optional()])
     sort_order = IntegerField("排序", default=0)
     is_active = BooleanField("前台展示", default=True)
+    submit = SubmitField("保存")
+
+
+class ProfileForm(FlaskForm):
+    name = StringField("姓名", validators=[DataRequired(), Length(max=120)])
+    title = StringField("职业标题", validators=[DataRequired(), Length(max=160)])
+    city = StringField("城市", validators=[Optional(), Length(max=120)])
+    email = StringField("邮箱", validators=[Optional(), Email(), Length(max=255)])
+    phone = StringField("电话", validators=[Optional(), Length(max=80)])
+    wechat = StringField("微信", validators=[Optional(), Length(max=120)])
+    github_url = URLField("GitHub", validators=[Optional(), Length(max=255)])
+    website_url = URLField("个人网站", validators=[Optional(), Length(max=255)])
+    avatar = FileField("头像")
+    resume_file = FileField("简历文件")
+    summary = TextAreaField("个人简介", validators=[Optional()])
+    job_status = StringField("求职状态", validators=[Optional(), Length(max=160)])
+    is_active = BooleanField("前台展示", default=True)
+    submit = SubmitField("保存")
+
+
+class MessageStatusForm(FlaskForm):
+    status = SelectField(
+        "状态",
+        choices=[
+            ("unread", "未读"),
+            ("read", "已读"),
+            ("handled", "已处理"),
+            ("spam", "垃圾留言"),
+        ],
+        validators=[DataRequired()],
+    )
+    admin_note = TextAreaField("备注", validators=[Optional()])
+    submit = SubmitField("保存")
+
+
+class SettingForm(FlaskForm):
+    site_title = StringField("站点标题", validators=[DataRequired(), Length(max=255)])
+    seo_description = StringField("SEO 描述", validators=[Optional(), Length(max=500)])
+    icp_text = StringField("备案号", validators=[Optional(), Length(max=255)])
+    messages_enabled = BooleanField("开启留言")
     submit = SubmitField("保存")

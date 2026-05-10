@@ -1,0 +1,36 @@
+{% extends "admin/layout.html" %}
+{% block title %}留言管理{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">留言管理</h1>
+
+<div class="content-card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr><th>姓名</th><th>邮箱</th><th>状态</th><th>时间</th><th class="text-end">操作</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.email }}</td>
+            <td><span class="badge text-bg-secondary">{{ row.status }}</span></td>
+            <td>{{ row.created_at }}</td>
+            <td>
+              <div class="d-flex justify-content-end gap-2">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.message_detail', message_id=row.id) }}">查看</a>
+                <form method="post" action="{{ url_for('admin.message_delete', message_id=row.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-danger" data-confirm="确认删除留言？" type="submit">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td class="text-secondary" colspan="5">暂无留言</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

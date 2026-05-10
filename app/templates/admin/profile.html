@@ -1,0 +1,76 @@
+{% extends "admin/layout.html" %}
+{% block title %}个人信息{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">个人信息</h1>
+
+<form method="post" enctype="multipart/form-data" class="content-card">
+  {{ form.hidden_tag() }}
+  <div class="row g-3">
+    <div class="col-md-6">
+      {{ form.name.label(class="form-label") }}
+      {{ form.name(class="form-control") }}
+    </div>
+    <div class="col-md-6">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control") }}
+    </div>
+    <div class="col-md-4">
+      {{ form.city.label(class="form-label") }}
+      {{ form.city(class="form-control") }}
+    </div>
+    <div class="col-md-4">
+      {{ form.email.label(class="form-label") }}
+      {{ form.email(class="form-control") }}
+    </div>
+    <div class="col-md-4">
+      {{ form.phone.label(class="form-label") }}
+      {{ form.phone(class="form-control") }}
+    </div>
+    <div class="col-md-4">
+      {{ form.wechat.label(class="form-label") }}
+      {{ form.wechat(class="form-control") }}
+    </div>
+    <div class="col-md-4">
+      {{ form.github_url.label(class="form-label") }}
+      {{ form.github_url(class="form-control") }}
+    </div>
+    <div class="col-md-4">
+      {{ form.website_url.label(class="form-label") }}
+      {{ form.website_url(class="form-control") }}
+    </div>
+    <div class="col-md-6">
+      {{ form.avatar.label(class="form-label") }}
+      {{ form.avatar(class="form-control", **{"data-preview-target": "#avatarPreview"}) }}
+      {% if item.avatar_path %}
+        <img id="avatarPreview" class="profile-avatar mt-3" src="{{ url_for('static', filename=item.avatar_path) }}" alt="头像预览">
+      {% else %}
+        <img id="avatarPreview" class="profile-avatar mt-3 d-none" alt="头像预览">
+      {% endif %}
+    </div>
+    <div class="col-md-6">
+      {{ form.resume_file.label(class="form-label") }}
+      {{ form.resume_file(class="form-control") }}
+      {% if item.resume_file_path %}
+        <a class="d-inline-block mt-3" href="{{ url_for('static', filename=item.resume_file_path) }}" target="_blank" rel="noopener">查看当前简历文件</a>
+      {% endif %}
+    </div>
+    <div class="col-12">
+      {{ form.summary.label(class="form-label") }}
+      {{ form.summary(class="form-control", rows=5) }}
+    </div>
+    <div class="col-md-8">
+      {{ form.job_status.label(class="form-label") }}
+      {{ form.job_status(class="form-control") }}
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+      <div class="form-check">
+        {{ form.is_active(class="form-check-input") }}
+        {{ form.is_active.label(class="form-check-label") }}
+      </div>
+    </div>
+    <div class="col-12">
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </div>
+</form>
+{% endblock %}
