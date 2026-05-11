@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, flash, redirect, url_for
+from flask_wtf.csrf import CSRFError
 
 from app.config import CONFIG_MAP, apply_env_config, validate_production_config
 from app.extensions import csrf, limiter
@@ -39,6 +40,11 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        flash("页面安全校验已过期，请刷新页面后重新提交。", "warning")
+        return redirect(url_for("public.index") + "#contact")
 
     @app.context_processor
     def inject_admin_resources():

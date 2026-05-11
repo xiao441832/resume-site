@@ -114,3 +114,29 @@ def test_message_submission_inserts_message(client, monkeypatch):
     assert response.status_code == 302
     assert inserted["params"][0] == "访客"
     assert inserted["params"][1] == "visitor@example.com"
+
+
+def test_message_get_redirects_to_contact_form(client):
+    response = client.get("/messages", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/#contact")
+
+
+def test_csrf_error_redirects_to_contact_form(app):
+    app.config["WTF_CSRF_ENABLED"] = True
+    client = app.test_client()
+
+    response = client.post(
+        "/messages",
+        data={
+            "name": "访客",
+            "email": "visitor@example.com",
+            "phone": "13800138000",
+            "content": "你好，我想了解更多。",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/#contact")

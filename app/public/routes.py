@@ -117,6 +117,11 @@ def index():
     return render_template("public/index.html", form=MessageForm(), **data)
 
 
+@public_bp.route("/messages", methods=["GET"])
+def message_form():
+    return redirect(url_for("public.index") + "#contact")
+
+
 @public_bp.route("/messages", methods=["POST"])
 @limiter.limit("3 per minute")
 def submit_message():
