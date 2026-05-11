@@ -4,6 +4,20 @@ server {
 
     client_max_body_size 8m;
 
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name example.com;
+
+    ssl_certificate /etc/ssl/certs/resume-site.crt;
+    ssl_certificate_key /etc/ssl/private/resume-site.key;
+
+    client_max_body_size 8m;
+
     location /static/ {
         alias /opt/resume-site/app/static/;
         expires 7d;
