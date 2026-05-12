@@ -1,37 +1,111 @@
 {% extends "admin/layout.html" %}
 {% block title %}仪表盘{% endblock %}
 {% block content %}
+{% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
 <h1 class="h3 mb-4">仪表盘</h1>
-<div class="row g-3 mb-4">
-  <div class="col-md-3">
-    <div class="content-card">
-      <div class="text-secondary">技能</div>
-      <div class="fs-3 fw-bold">{{ counts.skills }}</div>
+
+{% if area == 'admin' %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">用户总数</div>
+        <div class="fs-3 fw-bold">{{ counts.users }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">正常用户</div>
+        <div class="fs-3 fw-bold">{{ counts.active_users }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">已封号用户</div>
+        <div class="fs-3 fw-bold">{{ counts.banned_users }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">公开简历</div>
+        <div class="fs-3 fw-bold">{{ counts.public_resumes }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">封禁简历</div>
+        <div class="fs-3 fw-bold">{{ counts.blocked_resumes }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">留言总数</div>
+        <div class="fs-3 fw-bold">{{ counts.messages }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">未读留言</div>
+        <div class="fs-3 fw-bold">{{ counts.unread_messages }}</div>
+      </div>
     </div>
   </div>
-  <div class="col-md-3">
-    <div class="content-card">
-      <div class="text-secondary">项目</div>
-      <div class="fs-3 fw-bold">{{ counts.projects }}</div>
+
+  <div class="content-card mb-4">
+    <h2 class="h5">最近注册用户</h2>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr><th>用户</th><th>邮箱</th><th>状态</th><th>发布权限</th><th>注册时间</th></tr>
+        </thead>
+        <tbody>
+          {% for user in recent_users %}
+            <tr>
+              <td>{{ user.display_name }} <span class="text-secondary small">{{ user.username }}</span></td>
+              <td>{{ user.email }}</td>
+              <td>{{ "正常" if user.is_active else "已封号" }}</td>
+              <td>{{ "允许发布" if user.can_publish else "禁止发布" }}</td>
+              <td>{{ user.created_at }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-secondary">暂无用户</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
-  <div class="col-md-3">
-    <div class="content-card">
-      <div class="text-secondary">留言</div>
-      <div class="fs-3 fw-bold">{{ counts.messages }}</div>
+{% else %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">技能</div>
+        <div class="fs-3 fw-bold">{{ counts.skills }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">项目</div>
+        <div class="fs-3 fw-bold">{{ counts.projects }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">留言</div>
+        <div class="fs-3 fw-bold">{{ counts.messages }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-card">
+        <div class="text-secondary">未读</div>
+        <div class="fs-3 fw-bold">{{ counts.unread_messages }}</div>
+      </div>
     </div>
   </div>
-  <div class="col-md-3">
-    <div class="content-card">
-      <div class="text-secondary">未读</div>
-      <div class="fs-3 fw-bold">{{ counts.unread_messages }}</div>
-    </div>
-  </div>
-</div>
+{% endif %}
+
 <div class="content-card">
   <h2 class="h5">最近留言</h2>
   <div class="table-responsive">
-    <table class="table align-middle">
+    <table class="table align-middle mb-0">
       <thead><tr><th>姓名</th><th>邮箱</th><th>状态</th><th>时间</th></tr></thead>
       <tbody>
         {% for message in recent_messages %}

@@ -58,6 +58,51 @@ def endpoint(name: str) -> str:
 
 
 def dashboard_counts() -> dict:
+    if is_admin_area():
+        return {
+            "users": query_one(
+                "SELECT COUNT(*) AS total FROM users WHERE role = 'user'"
+            )["total"],
+            "active_users": query_one(
+                """
+                SELECT COUNT(*) AS total
+                FROM users
+                WHERE role = 'user' AND is_active = 1
+                """
+            )["total"],
+            "banned_users": query_one(
+                """
+                SELECT COUNT(*) AS total
+                FROM users
+                WHERE role = 'user' AND is_active = 0
+                """
+            )["total"],
+            "public_resumes": query_one(
+                """
+                SELECT COUNT(*) AS total
+                FROM profile AS p
+                INNER JOIN users AS u ON u.id = p.user_id
+                WHERE u.role = 'user'
+                  AND u.is_active = 1
+                  AND u.can_publish = 1
+                  AND p.is_active = 1
+                  AND p.is_public_blocked = 0
+                """
+            )["total"],
+            "blocked_resumes": query_one(
+                """
+                SELECT COUNT(*) AS total
+                FROM profile AS p
+                INNER JOIN users AS u ON u.id = p.user_id
+                WHERE u.role = 'user' AND p.is_public_blocked = 1
+                """
+            )["total"],
+            "messages": query_one("SELECT COUNT(*) AS total FROM messages")["total"],
+            "unread_messages": query_one(
+                "SELECT COUNT(*) AS total FROM messages WHERE status = 'unread'"
+            )["total"],
+        }
+
     where, params = scoped_where()
     return {
         "skills": query_one(f"SELECT COUNT(*) AS total FROM skills{where}", params)["total"],
@@ -173,15 +218,26 @@ def dashboard():
     ensure_area_allowed()
     if is_admin_area():
         recent_messages = query_all("SELECT * FROM messages ORDER BY created_at DESC LIMIT 5")
+        recent_users = query_all(
+            """
+            SELECT id, username, display_name, email, is_active, can_publish, created_at
+            FROM users
+            WHERE role = 'user'
+            ORDER BY created_at DESC, id DESC
+            LIMIT 5
+            """
+        )
     else:
         recent_messages = query_all(
             "SELECT * FROM messages WHERE target_user_id = %s ORDER BY created_at DESC LIMIT 5",
             (scoped_user_id(),),
         )
+        recent_users = []
     return render_template(
         "admin/dashboard.html",
         counts=dashboard_counts(),
         recent_messages=recent_messages,
+        recent_users=recent_users,
     )
 
 
@@ -584,7 +640,7 @@ def message_delete(message_id):
 
 
 @admin_bp.route("/settings", methods=["GET", "POST"])
-@login_required
+@super_admin_required
 def settings():
     rows = query_all("SELECT setting_key, setting_value FROM site_settings")
     values = {row["setting_key"]: row.get("setting_value") or "" for row in rows}

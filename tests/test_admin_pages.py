@@ -45,10 +45,51 @@ def test_super_admin_can_view_user_list(client, monkeypatch):
     assert 'href="/admin/users/2"' in html
 
 
+def test_super_admin_dashboard_shows_system_counts(client, monkeypatch):
+    login_admin(client)
+
+    def fake_query_one(sql, params=None):
+        if "COUNT(*) AS total FROM users" in sql and "is_active = 1" in sql:
+            return {"total": 10}
+        if "COUNT(*) AS total FROM users" in sql and "is_active = 0" in sql:
+            return {"total": 2}
+        if "COUNT(*) AS total FROM users" in sql:
+            return {"total": 12}
+        if "p.is_public_blocked = 1" in sql:
+            return {"total": 3}
+        if "p.is_active = 1" in sql:
+            return {"total": 8}
+        if "status = 'unread'" in sql:
+            return {"total": 4}
+        return {"total": 20}
+
+    monkeypatch.setattr("app.admin.routes.query_one", fake_query_one)
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "用户总数" in html
+    assert "正常用户" in html
+    assert "已封号用户" in html
+    assert "公开简历" in html
+    assert "封禁简历" in html
+
+
 def test_normal_user_cannot_view_user_list(client):
     login_user(client, user_id=3)
 
     response = client.get("/admin/users")
+
+    assert response.status_code == 403
+
+
+def test_normal_user_cannot_view_site_settings(client, monkeypatch):
+    login_user(client, user_id=3)
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin/settings")
 
     assert response.status_code == 403
 
