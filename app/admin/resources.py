@@ -20,6 +20,7 @@ class ResourceConfig:
     form_class: Type[FlaskForm]
     columns: tuple[str, ...]
     list_columns: tuple[str, ...]
+    owner_column: str = "user_id"
 
 
 RESOURCE_CONFIGS = {
@@ -115,11 +116,15 @@ def get_resource_config(key: str) -> ResourceConfig:
 
 
 def build_insert_sql(config: ResourceConfig) -> str:
-    columns = ", ".join(config.columns)
-    placeholders = ", ".join(["%s"] * len(config.columns))
+    insert_columns = (config.owner_column, *config.columns)
+    columns = ", ".join(insert_columns)
+    placeholders = ", ".join(["%s"] * len(insert_columns))
     return f"INSERT INTO {config.table} ({columns}) VALUES ({placeholders})"
 
 
 def build_update_sql(config: ResourceConfig) -> str:
     assignments = ", ".join(f"{column} = %s" for column in config.columns)
-    return f"UPDATE {config.table} SET {assignments} WHERE id = %s"
+    return (
+        f"UPDATE {config.table} SET {assignments} "
+        f"WHERE id = %s AND {config.owner_column} = %s"
+    )

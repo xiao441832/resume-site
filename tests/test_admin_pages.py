@@ -1,15 +1,30 @@
 def login_admin(client):
     with client.session_transaction() as session:
+        session["user_id"] = 1
+        session["username"] = "admin"
+        session["display_name"] = "管理员"
+        session["role"] = "admin"
         session["admin_user_id"] = 1
         session["admin_username"] = "admin"
         session["admin_display_name"] = "管理员"
 
 
+def login_user(client, user_id=3):
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+        session["username"] = "student"
+        session["display_name"] = "学生用户"
+        session["role"] = "user"
+
+
 def test_resource_list_renders_rows(client, monkeypatch):
-    login_admin(client)
-    monkeypatch.setattr(
-        "app.admin.routes.query_all",
-        lambda sql, params=None: [
+    login_user(client, user_id=3)
+    captured = {}
+
+    def fake_query_all(sql, params=None):
+        captured["sql"] = sql
+        captured["params"] = params
+        return [
             {
                 "id": 1,
                 "name": "Flask",
@@ -18,10 +33,14 @@ def test_resource_list_renders_rows(client, monkeypatch):
                 "sort_order": 1,
                 "is_active": 1,
             }
-        ],
+        ]
+
+    monkeypatch.setattr(
+        "app.admin.routes.query_all",
+        fake_query_all,
     )
 
-    response = client.get("/admin/skills")
+    response = client.get("/dashboard/skills")
 
     html = response.get_data(as_text=True)
     assert response.status_code == 200
@@ -29,10 +48,12 @@ def test_resource_list_renders_rows(client, monkeypatch):
     assert "Flask" in html
     assert "新增" in html
     assert 'rel="icon"' in html
+    assert "WHERE user_id = %s" in captured["sql"]
+    assert captured["params"] == (3,)
 
 
 def test_profile_post_updates_existing_profile(client, monkeypatch):
-    login_admin(client)
+    login_user(client, user_id=3)
     monkeypatch.setattr(
         "app.admin.routes.query_one",
         lambda sql, params=None: {
@@ -51,7 +72,7 @@ def test_profile_post_updates_existing_profile(client, monkeypatch):
     )
 
     response = client.post(
-        "/admin/profile",
+        "/dashboard/profile",
         data={
             "name": "张三",
             "title": "Python 工程师",
@@ -70,11 +91,13 @@ def test_profile_post_updates_existing_profile(client, monkeypatch):
 
     assert response.status_code == 302
     assert "UPDATE profile" in executed[0][0]
+    assert "WHERE id = %s AND user_id = %s" in executed[0][0]
     assert executed[0][1][0] == "张三"
+    assert executed[0][1][-1] == 3
 
 
 def test_message_detail_updates_status(client, monkeypatch):
-    login_admin(client)
+    login_user(client, user_id=3)
     monkeypatch.setattr(
         "app.admin.routes.query_one",
         lambda sql, params=None: {
@@ -96,14 +119,15 @@ def test_message_detail_updates_status(client, monkeypatch):
     )
 
     response = client.post(
-        "/admin/messages/9",
+        "/dashboard/messages/9",
         data={"status": "handled", "admin_note": "已回复"},
         follow_redirects=False,
     )
 
     assert response.status_code == 302
     assert "UPDATE messages" in executed[0][0]
-    assert executed[0][1] == ("handled", "已回复", 9)
+    assert "target_user_id = %s" in executed[0][0]
+    assert executed[0][1] == ("handled", "已回复", 9, 3)
 
 
 def test_settings_post_upserts_site_settings(client, monkeypatch):

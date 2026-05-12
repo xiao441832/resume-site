@@ -33,13 +33,14 @@ def create_app(config_name: str | None = None) -> Flask:
     app.teardown_appcontext(db.close_db)
     cli.register_cli(app)
 
-    from app.admin.routes import admin_bp
+    from app.admin.routes import admin_bp, dashboard_bp
     from app.auth.routes import auth_bp
     from app.public.routes import public_bp
 
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(dashboard_bp)
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):

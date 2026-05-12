@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, flash, redirect, render_template, session, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
 
 from app.admin.forms import MessageStatusForm, ProfileForm, SettingForm
 from app.admin.resources import (
@@ -7,20 +7,58 @@ from app.admin.resources import (
     build_update_sql,
     get_resource_config,
 )
-from app.auth.decorators import login_required
+from app.auth.decorators import current_user_id, current_user_role, login_required
 from app.db import execute, query_all, query_one
 from app.services.upload_service import UploadError, save_upload
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
+
+
+def current_area() -> str:
+    return request.blueprint or "dashboard"
+
+
+def scoped_user_id() -> int:
+    user_id = current_user_id()
+    if not user_id:
+        abort(403)
+    return user_id
+
+
+def ensure_area_allowed() -> None:
+    if current_area() == "admin" and current_user_role() != "admin":
+        abort(403)
+
+
+def is_admin_area() -> bool:
+    return current_area() == "admin" and current_user_role() == "admin"
+
+
+def scoped_where(owner_column: str = "user_id") -> tuple[str, tuple]:
+    if is_admin_area():
+        return "", ()
+    return f" WHERE {owner_column} = %s", (scoped_user_id(),)
+
+
+def endpoint(name: str) -> str:
+    return f"{current_area()}.{name}"
 
 
 def dashboard_counts() -> dict:
+    where, params = scoped_where()
     return {
-        "skills": query_one("SELECT COUNT(*) AS total FROM skills")["total"],
-        "projects": query_one("SELECT COUNT(*) AS total FROM projects")["total"],
-        "messages": query_one("SELECT COUNT(*) AS total FROM messages")["total"],
+        "skills": query_one(f"SELECT COUNT(*) AS total FROM skills{where}", params)["total"],
+        "projects": query_one(f"SELECT COUNT(*) AS total FROM projects{where}", params)["total"],
+        "messages": query_one(
+            f"SELECT COUNT(*) AS total FROM messages"
+            f"{'' if is_admin_area() else ' WHERE target_user_id = %s'}",
+            () if is_admin_area() else (scoped_user_id(),),
+        )["total"],
         "unread_messages": query_one(
             "SELECT COUNT(*) AS total FROM messages WHERE status = 'unread'"
+            + ("" if is_admin_area() else " AND target_user_id = %s"),
+            () if is_admin_area() else (scoped_user_id(),),
         )["total"],
     }
 
@@ -44,7 +82,7 @@ def record_upload(upload: dict) -> None:
         """
         INSERT INTO uploads (
             original_filename, saved_filename, file_path, mime_type,
-            file_size, upload_purpose, uploader_id
+            file_size, upload_purpose, user_id
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
@@ -55,15 +93,23 @@ def record_upload(upload: dict) -> None:
             upload["mime_type"],
             upload["file_size"],
             upload["upload_purpose"],
-            session.get("admin_user_id"),
+            scoped_user_id(),
         ),
     )
 
 
 @admin_bp.route("")
+@dashboard_bp.route("")
 @login_required
 def dashboard():
-    recent_messages = query_all("SELECT * FROM messages ORDER BY created_at DESC LIMIT 5")
+    ensure_area_allowed()
+    if is_admin_area():
+        recent_messages = query_all("SELECT * FROM messages ORDER BY created_at DESC LIMIT 5")
+    else:
+        recent_messages = query_all(
+            "SELECT * FROM messages WHERE target_user_id = %s ORDER BY created_at DESC LIMIT 5",
+            (scoped_user_id(),),
+        )
     return render_template(
         "admin/dashboard.html",
         counts=dashboard_counts(),
@@ -72,65 +118,103 @@ def dashboard():
 
 
 @admin_bp.route("/<resource>")
+@dashboard_bp.route("/<resource>")
 @login_required
 def resource_list(resource):
+    ensure_area_allowed()
     try:
         config = get_resource_config(resource)
     except KeyError:
         abort(404)
-    rows = query_all(f"SELECT * FROM {config.table} ORDER BY sort_order ASC, id DESC")
+    where, params = scoped_where(config.owner_column)
+    rows = query_all(
+        f"SELECT * FROM {config.table}{where} ORDER BY sort_order ASC, id DESC",
+        params,
+    )
     return render_template("admin/resource_list.html", config=config, rows=rows)
 
 
 @admin_bp.route("/<resource>/new", methods=["GET", "POST"])
+@dashboard_bp.route("/<resource>/new", methods=["GET", "POST"])
 @login_required
 def resource_create(resource):
+    ensure_area_allowed()
     try:
         config = get_resource_config(resource)
     except KeyError:
         abort(404)
     form = config.form_class()
     if form.validate_on_submit():
-        execute(build_insert_sql(config), form_values(form, config.columns))
+        execute(
+            build_insert_sql(config),
+            [scoped_user_id(), *form_values(form, config.columns)],
+        )
         flash(f"{config.title}已创建。", "success")
-        return redirect(url_for("admin.resource_list", resource=resource))
+        return redirect(url_for(endpoint("resource_list"), resource=resource))
     return render_template("admin/resource_form.html", config=config, form=form)
 
 
 @admin_bp.route("/<resource>/<int:item_id>/edit", methods=["GET", "POST"])
+@dashboard_bp.route("/<resource>/<int:item_id>/edit", methods=["GET", "POST"])
 @login_required
 def resource_edit(resource, item_id):
+    ensure_area_allowed()
     try:
         config = get_resource_config(resource)
     except KeyError:
         abort(404)
-    item = query_one(f"SELECT * FROM {config.table} WHERE id = %s", (item_id,))
+    if is_admin_area():
+        item = query_one(f"SELECT * FROM {config.table} WHERE id = %s", (item_id,))
+    else:
+        item = query_one(
+            f"SELECT * FROM {config.table} WHERE id = %s AND {config.owner_column} = %s",
+            (item_id, scoped_user_id()),
+        )
     if not item:
         abort(404)
     form = config.form_class(data=item)
     if form.validate_on_submit():
-        execute(build_update_sql(config), [*form_values(form, config.columns), item_id])
+        execute(
+            build_update_sql(config),
+            [*form_values(form, config.columns), item_id, item[config.owner_column]],
+        )
         flash(f"{config.title}已保存。", "success")
-        return redirect(url_for("admin.resource_list", resource=resource))
+        return redirect(url_for(endpoint("resource_list"), resource=resource))
     return render_template("admin/resource_form.html", config=config, form=form, item=item)
 
 
 @admin_bp.route("/<resource>/<int:item_id>/delete", methods=["POST"])
+@dashboard_bp.route("/<resource>/<int:item_id>/delete", methods=["POST"])
 @login_required
 def resource_delete(resource, item_id):
+    ensure_area_allowed()
     try:
         config = get_resource_config(resource)
     except KeyError:
         abort(404)
-    execute(f"DELETE FROM {config.table} WHERE id = %s", (item_id,))
+    if is_admin_area():
+        execute(f"DELETE FROM {config.table} WHERE id = %s", (item_id,))
+    else:
+        execute(
+            f"DELETE FROM {config.table} WHERE id = %s AND {config.owner_column} = %s",
+            (item_id, scoped_user_id()),
+        )
     flash(f"{config.title}已删除。", "success")
-    return redirect(url_for("admin.resource_list", resource=resource))
+    return redirect(url_for(endpoint("resource_list"), resource=resource))
 
 
 @admin_bp.route("/profile", methods=["GET", "POST"])
+@dashboard_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    item = query_one("SELECT * FROM profile ORDER BY id ASC LIMIT 1") or {}
+    ensure_area_allowed()
+    if is_admin_area():
+        item = query_one("SELECT * FROM profile ORDER BY id ASC LIMIT 1") or {}
+    else:
+        item = query_one(
+            "SELECT * FROM profile WHERE user_id = %s LIMIT 1",
+            (scoped_user_id(),),
+        ) or {}
     form = ProfileForm(data=item)
     if form.validate_on_submit():
         avatar_path = item.get("avatar_path")
@@ -178,61 +262,90 @@ def profile():
                     wechat = %s, github_url = %s, website_url = %s,
                     avatar_path = %s, resume_file_path = %s, summary = %s,
                     job_status = %s, is_active = %s
-                WHERE id = %s
+                WHERE id = %s AND user_id = %s
                 """,
-                (*params, item["id"]),
+                (*params, item["id"], item.get("user_id") or scoped_user_id()),
             )
         else:
             execute(
                 """
                 INSERT INTO profile (
-                    name, title, city, email, phone, wechat, github_url,
+                    user_id, name, title, city, email, phone, wechat, github_url,
                     website_url, avatar_path, resume_file_path, summary,
                     job_status, is_active
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                params,
+                (scoped_user_id(), *params),
             )
 
         flash("个人信息已保存。", "success")
-        return redirect(url_for("admin.profile"))
+        return redirect(url_for(endpoint("profile")))
 
     return render_template("admin/profile.html", form=form, item=item)
 
 
 @admin_bp.route("/messages")
+@dashboard_bp.route("/messages")
 @login_required
 def messages():
-    rows = query_all("SELECT * FROM messages ORDER BY created_at DESC")
+    ensure_area_allowed()
+    if is_admin_area():
+        rows = query_all("SELECT * FROM messages ORDER BY created_at DESC")
+    else:
+        rows = query_all(
+            "SELECT * FROM messages WHERE target_user_id = %s ORDER BY created_at DESC",
+            (scoped_user_id(),),
+        )
     return render_template("admin/messages.html", rows=rows)
 
 
 @admin_bp.route("/messages/<int:message_id>", methods=["GET", "POST"])
+@dashboard_bp.route("/messages/<int:message_id>", methods=["GET", "POST"])
 @login_required
 def message_detail(message_id):
-    item = query_one("SELECT * FROM messages WHERE id = %s", (message_id,))
+    ensure_area_allowed()
+    if is_admin_area():
+        item = query_one("SELECT * FROM messages WHERE id = %s", (message_id,))
+    else:
+        item = query_one(
+            "SELECT * FROM messages WHERE id = %s AND target_user_id = %s",
+            (message_id, scoped_user_id()),
+        )
     if not item:
         abort(404)
 
     form = MessageStatusForm(data=item)
     if form.validate_on_submit():
         execute(
-            "UPDATE messages SET status = %s, admin_note = %s WHERE id = %s",
-            (form.status.data, form.admin_note.data, message_id),
+            "UPDATE messages SET status = %s, admin_note = %s "
+            + ("WHERE id = %s" if is_admin_area() else "WHERE id = %s AND target_user_id = %s"),
+            (
+                (form.status.data, form.admin_note.data, message_id)
+                if is_admin_area()
+                else (form.status.data, form.admin_note.data, message_id, scoped_user_id())
+            ),
         )
         flash("留言状态已更新。", "success")
-        return redirect(url_for("admin.messages"))
+        return redirect(url_for(endpoint("messages")))
 
     return render_template("admin/message_detail.html", item=item, form=form)
 
 
 @admin_bp.route("/messages/<int:message_id>/delete", methods=["POST"])
+@dashboard_bp.route("/messages/<int:message_id>/delete", methods=["POST"])
 @login_required
 def message_delete(message_id):
-    execute("DELETE FROM messages WHERE id = %s", (message_id,))
+    ensure_area_allowed()
+    if is_admin_area():
+        execute("DELETE FROM messages WHERE id = %s", (message_id,))
+    else:
+        execute(
+            "DELETE FROM messages WHERE id = %s AND target_user_id = %s",
+            (message_id, scoped_user_id()),
+        )
     flash("留言已删除。", "success")
-    return redirect(url_for("admin.messages"))
+    return redirect(url_for(endpoint("messages")))
 
 
 @admin_bp.route("/settings", methods=["GET", "POST"])
