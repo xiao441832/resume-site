@@ -47,6 +47,8 @@ def test_resource_list_renders_rows(client, monkeypatch):
     assert "技能" in html
     assert "Flask" in html
     assert "新增" in html
+    assert 'href="/dashboard/skills/new"' in html
+    assert 'href="/admin/skills/new"' not in html
     assert 'rel="icon"' in html
     assert "WHERE user_id = %s" in captured["sql"]
     assert captured["params"] == (3,)

@@ -1,6 +1,7 @@
 {% extends "admin/layout.html" %}
 {% block title %}{{ config.title }}{% endblock %}
 {% block content %}
+{% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
 <h1 class="h3 mb-3">{{ config.title }}</h1>
 
 <form method="post" class="content-card">
@@ -27,7 +28,7 @@
     {% endfor %}
     <div class="col-12 d-flex gap-2">
       {{ form.submit(class="btn btn-primary") }}
-      <a class="btn btn-outline-secondary" href="{{ url_for('admin.resource_list', resource=config.key) }}">返回</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for(area ~ '.resource_list', resource=config.key) }}">返回</a>
     </div>
   </div>
 </form>

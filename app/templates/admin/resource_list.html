@@ -1,9 +1,10 @@
 {% extends "admin/layout.html" %}
 {% block title %}{{ config.title }}{% endblock %}
 {% block content %}
+{% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">{{ config.title }}</h1>
-  <a class="btn btn-primary" href="{{ url_for('admin.resource_create', resource=config.key) }}">新增</a>
+  <a class="btn btn-primary" href="{{ url_for(area ~ '.resource_create', resource=config.key) }}">新增</a>
 </div>
 
 <div class="content-card">
@@ -31,8 +32,8 @@
             {% endfor %}
             <td>
               <div class="d-flex justify-content-end gap-2">
-                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.resource_edit', resource=config.key, item_id=row.id) }}">编辑</a>
-                <form method="post" action="{{ url_for('admin.resource_delete', resource=config.key, item_id=row.id) }}">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for(area ~ '.resource_edit', resource=config.key, item_id=row.id) }}">编辑</a>
+                <form method="post" action="{{ url_for(area ~ '.resource_delete', resource=config.key, item_id=row.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button class="btn btn-sm btn-outline-danger" data-confirm="确认删除？" type="submit">删除</button>
                 </form>

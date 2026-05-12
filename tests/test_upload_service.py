@@ -45,3 +45,17 @@ def test_save_upload_rejects_large_pdf(app, tmp_path):
     with app.app_context():
         with pytest.raises(UploadError, match="文件大小超过限制"):
             save_upload(make_file("resume.pdf", "application/pdf", b"x" * (1024 * 1024 + 1)), "resume")
+
+
+def test_save_upload_wraps_filesystem_error(app, tmp_path, monkeypatch):
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)
+    file = make_file("avatar.png", "image/png")
+
+    def fail_save(path):
+        raise PermissionError("permission denied")
+
+    monkeypatch.setattr(file, "save", fail_save)
+
+    with app.app_context():
+        with pytest.raises(UploadError, match="无法保存上传文件"):
+            save_upload(file, "avatar")

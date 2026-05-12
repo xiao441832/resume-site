@@ -1,6 +1,7 @@
 {% extends "admin/layout.html" %}
 {% block title %}留言详情{% endblock %}
 {% block content %}
+{% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
 <h1 class="h3 mb-3">留言详情</h1>
 
 <div class="row g-3">
@@ -35,7 +36,7 @@
       </div>
       <div class="d-flex gap-2">
         {{ form.submit(class="btn btn-primary") }}
-        <a class="btn btn-outline-secondary" href="{{ url_for('admin.messages') }}">返回</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for(area ~ '.messages') }}">返回</a>
       </div>
     </form>
   </div>

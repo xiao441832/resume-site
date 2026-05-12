@@ -1,6 +1,7 @@
 {% extends "admin/layout.html" %}
 {% block title %}留言管理{% endblock %}
 {% block content %}
+{% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
 <h1 class="h3 mb-3">留言管理</h1>
 
 <div class="content-card">
@@ -18,8 +19,8 @@
             <td>{{ row.created_at }}</td>
             <td>
               <div class="d-flex justify-content-end gap-2">
-                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.message_detail', message_id=row.id) }}">查看</a>
-                <form method="post" action="{{ url_for('admin.message_delete', message_id=row.id) }}">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for(area ~ '.message_detail', message_id=row.id) }}">查看</a>
+                <form method="post" action="{{ url_for(area ~ '.message_delete', message_id=row.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button class="btn btn-sm btn-outline-danger" data-confirm="确认删除留言？" type="submit">删除</button>
                 </form>

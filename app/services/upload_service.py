@@ -63,10 +63,14 @@ def save_upload(file: FileStorage, purpose: str) -> dict:
         raise UploadError("文件大小超过限制。")
 
     upload_dir = Path(current_app.config["UPLOAD_FOLDER"])
-    upload_dir.mkdir(parents=True, exist_ok=True)
     saved_filename = f"{uuid4().hex}.{ext}"
     saved_path = upload_dir / saved_filename
-    file.save(saved_path)
+    try:
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        file.save(saved_path)
+    except OSError as exc:
+        current_app.logger.exception("保存上传文件失败。")
+        raise UploadError("无法保存上传文件，请联系管理员检查上传目录权限。") from exc
 
     return {
         "original_filename": file.filename,
