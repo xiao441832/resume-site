@@ -205,6 +205,51 @@ def test_profile_post_updates_existing_profile(client, monkeypatch):
     assert executed[0][1][-1] == 3
 
 
+def test_profile_post_forces_hidden_when_publish_disabled(client, monkeypatch):
+    login_user(client, user_id=3)
+
+    def fake_query_one(sql, params=None):
+        if "FROM users" in sql:
+            return {"can_publish": 0, "publish_ban_reason": "资料违规"}
+        return {
+            "id": 1,
+            "name": "旧名字",
+            "title": "旧职位",
+            "is_active": 1,
+            "avatar_path": None,
+            "resume_file_path": None,
+        }
+
+    monkeypatch.setattr("app.admin.routes.query_one", fake_query_one)
+    executed = []
+    monkeypatch.setattr(
+        "app.admin.routes.execute",
+        lambda sql, params=None: executed.append((sql, params)) or 1,
+    )
+
+    response = client.post(
+        "/dashboard/profile",
+        data={
+            "name": "张三",
+            "title": "Python 工程师",
+            "city": "杭州",
+            "email": "zhangsan@example.com",
+            "phone": "13800138000",
+            "wechat": "zhangsan",
+            "github_url": "https://github.com/example",
+            "website_url": "https://example.com",
+            "summary": "热爱后端开发",
+            "job_status": "正在寻找后端开发机会",
+            "is_active": "y",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "UPDATE profile" in executed[0][0]
+    assert executed[0][1][-3] == 0
+
+
 def test_message_detail_updates_status(client, monkeypatch):
     login_user(client, user_id=3)
     monkeypatch.setattr(

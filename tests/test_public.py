@@ -1,3 +1,6 @@
+from app.public.routes import find_public_user, load_public_resumes
+
+
 def resume_payload():
     return {
         "owner": {
@@ -62,6 +65,39 @@ def test_homepage_renders_public_resume_cards(client, monkeypatch):
     assert "张三" in html
     assert "Python 工程师" in html
     assert 'href="/u/zhangsan"' in html
+
+
+def test_public_resume_list_requires_publish_permission_and_unblocked_resume(monkeypatch):
+    captured = {}
+
+    def fake_query_all(sql, params=None):
+        captured["sql"] = sql
+        captured["params"] = params
+        return []
+
+    monkeypatch.setattr("app.public.routes.query_all", fake_query_all)
+
+    load_public_resumes()
+
+    assert "u.can_publish = 1" in captured["sql"]
+    assert "p.is_public_blocked = 0" in captured["sql"]
+
+
+def test_find_public_user_requires_publish_permission_and_unblocked_resume(monkeypatch):
+    captured = {}
+
+    def fake_query_one(sql, params=None):
+        captured["sql"] = sql
+        captured["params"] = params
+        return None
+
+    monkeypatch.setattr("app.public.routes.query_one", fake_query_one)
+
+    result = find_public_user("zhangsan")
+
+    assert result is None
+    assert "u.can_publish = 1" in captured["sql"]
+    assert "p.is_public_blocked = 0" in captured["sql"]
 
 
 def test_user_resume_page_renders_scoped_resume_data(client, monkeypatch):

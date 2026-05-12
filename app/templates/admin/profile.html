@@ -3,6 +3,19 @@
 {% block content %}
 <h1 class="h3 mb-3">个人信息</h1>
 
+{% if publish_policy and not publish_policy.can_publish %}
+  <div class="alert alert-warning">
+    当前账号已被禁止发布，个人简历不会在前台公开。
+    {% if publish_policy.publish_ban_reason %}原因：{{ publish_policy.publish_ban_reason }}{% endif %}
+  </div>
+{% endif %}
+{% if item.is_public_blocked %}
+  <div class="alert alert-danger">
+    公开简历已被系统封禁。
+    {% if item.public_block_reason %}原因：{{ item.public_block_reason }}{% endif %}
+  </div>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data" class="content-card">
   {{ form.hidden_tag() }}
   <div class="row g-3">

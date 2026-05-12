@@ -110,6 +110,27 @@ def clean_reason(value: str | None) -> str | None:
     return reason or None
 
 
+def current_publish_policy() -> dict:
+    if is_admin_area():
+        return {"can_publish": 1, "publish_ban_reason": None}
+    policy = query_one(
+        """
+        SELECT can_publish, publish_ban_reason
+        FROM users
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (scoped_user_id(),),
+    ) or {}
+    can_publish = policy.get("can_publish")
+    if can_publish is None:
+        can_publish = 1
+    return {
+        "can_publish": int(can_publish),
+        "publish_ban_reason": policy.get("publish_ban_reason"),
+    }
+
+
 def form_values(form, columns: tuple[str, ...]) -> list:
     values = []
     for column in columns:
@@ -407,6 +428,7 @@ def profile():
             "SELECT * FROM profile WHERE user_id = %s LIMIT 1",
             (scoped_user_id(),),
         ) or {}
+    publish_policy = current_publish_policy()
     form = ProfileForm(data=item)
     if form.validate_on_submit():
         avatar_path = item.get("avatar_path")
@@ -417,7 +439,12 @@ def profile():
                 upload = save_upload(form.avatar.data, "avatar")
             except UploadError as exc:
                 flash(str(exc), "danger")
-                return render_template("admin/profile.html", form=form, item=item)
+                return render_template(
+                    "admin/profile.html",
+                    form=form,
+                    item=item,
+                    publish_policy=publish_policy,
+                )
             record_upload(upload)
             avatar_path = upload["file_path"]
 
@@ -426,9 +453,20 @@ def profile():
                 upload = save_upload(form.resume_file.data, "resume")
             except UploadError as exc:
                 flash(str(exc), "danger")
-                return render_template("admin/profile.html", form=form, item=item)
+                return render_template(
+                    "admin/profile.html",
+                    form=form,
+                    item=item,
+                    publish_policy=publish_policy,
+                )
             record_upload(upload)
             resume_file_path = upload["file_path"]
+
+        is_active = 1 if form.is_active.data else 0
+        if not is_admin_area() and int(publish_policy.get("can_publish") or 0) != 1:
+            if is_active:
+                flash("当前账号已被禁止发布，不能公开简历。", "warning")
+            is_active = 0
 
         params = (
             form.name.data,
@@ -443,7 +481,7 @@ def profile():
             resume_file_path,
             form.summary.data,
             form.job_status.data,
-            1 if form.is_active.data else 0,
+            is_active,
         )
 
         if item.get("id"):
@@ -474,7 +512,12 @@ def profile():
         flash("个人信息已保存。", "success")
         return redirect(url_for(endpoint("profile")))
 
-    return render_template("admin/profile.html", form=form, item=item)
+    return render_template(
+        "admin/profile.html",
+        form=form,
+        item=item,
+        publish_policy=publish_policy,
+    )
 
 
 @admin_bp.route("/messages")

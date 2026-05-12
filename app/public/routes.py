@@ -69,7 +69,9 @@ def load_public_resumes(keyword: str = "") -> list[dict]:
         INNER JOIN profile AS p ON p.user_id = u.id
         WHERE u.is_active = 1
           AND u.role = 'user'
+          AND u.can_publish = 1
           AND p.is_active = 1
+          AND p.is_public_blocked = 0
           {search_sql}
         ORDER BY u.created_at DESC, u.id DESC
         """,
@@ -86,7 +88,9 @@ def find_public_user(username: str) -> dict | None:
         WHERE u.username = %s
           AND u.is_active = 1
           AND u.role = 'user'
+          AND u.can_publish = 1
           AND p.is_active = 1
+          AND p.is_public_blocked = 0
         LIMIT 1
         """,
         (username,),
