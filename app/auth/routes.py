@@ -60,7 +60,7 @@ def set_login_session(user: dict) -> None:
     session["role"] = user["role"]
 
     # 兼容旧后台模板和测试，后续后台重构完成后可以移除这些键。
-    if user["role"] == "admin":
+    if user["role"] == "super_admin":
         session["admin_user_id"] = user["id"]
         session["admin_username"] = user["username"]
         session["admin_display_name"] = user["display_name"]
@@ -107,7 +107,7 @@ def login():
             set_login_session(user)
             mark_last_login(user["id"])
             flash("登录成功。", "success")
-            if user["role"] == "admin":
+            if user["role"] == "super_admin":
                 return redirect(url_for("admin.dashboard"))
             return redirect("/dashboard")
 

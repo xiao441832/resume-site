@@ -101,7 +101,7 @@ def test_login_success_sets_unified_session(client, monkeypatch):
         assert session["role"] == "user"
 
 
-def test_admin_login_redirects_to_admin_dashboard(client, monkeypatch):
+def test_super_admin_login_redirects_to_admin_dashboard(client, monkeypatch):
     monkeypatch.setattr(
         "app.auth.routes.find_user_by_login",
         lambda login_name: {
@@ -109,7 +109,7 @@ def test_admin_login_redirects_to_admin_dashboard(client, monkeypatch):
             "username": "admin",
             "password_hash": generate_password_hash("secret123"),
             "display_name": "管理员",
-            "role": "admin",
+            "role": "super_admin",
             "is_active": 1,
         },
     )
@@ -123,6 +123,30 @@ def test_admin_login_redirects_to_admin_dashboard(client, monkeypatch):
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/admin")
+
+
+def test_legacy_admin_role_does_not_enter_admin_dashboard(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.auth.routes.find_user_by_login",
+        lambda login_name: {
+            "id": 8,
+            "username": "admin",
+            "password_hash": generate_password_hash("secret123"),
+            "display_name": "旧管理员",
+            "role": "admin",
+            "is_active": 1,
+        },
+    )
+    monkeypatch.setattr("app.auth.routes.mark_last_login", lambda user_id: None)
+
+    response = client.post(
+        "/auth/login",
+        data={"username": "admin", "password": "secret123"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/dashboard")
 
 
 def test_login_rejects_wrong_password(client, monkeypatch):
