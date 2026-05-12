@@ -4,15 +4,19 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     display_name VARCHAR(120) NOT NULL,
-    role ENUM('user','admin') NOT NULL DEFAULT 'user',
+    role ENUM('super_admin','user') NOT NULL DEFAULT 'user',
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    can_publish TINYINT(1) NOT NULL DEFAULT 1,
+    ban_reason VARCHAR(255) NULL,
+    publish_ban_reason VARCHAR(255) NULL,
     last_login_at DATETIME NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_users_username (username),
     UNIQUE KEY uq_users_email (email),
-    KEY idx_users_role_active (role, is_active)
+    KEY idx_users_role_active (role, is_active),
+    KEY idx_users_publish_active (role, is_active, can_publish)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS profile (
@@ -31,11 +35,13 @@ CREATE TABLE IF NOT EXISTS profile (
     summary TEXT NULL,
     job_status VARCHAR(160) NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    is_public_blocked TINYINT(1) NOT NULL DEFAULT 0,
+    public_block_reason VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_profile_user (user_id),
-    KEY idx_profile_public (is_active),
+    KEY idx_profile_public (is_active, is_public_blocked),
     CONSTRAINT fk_profile_user
         FOREIGN KEY (user_id) REFERENCES users (id)
         ON DELETE CASCADE

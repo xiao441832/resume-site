@@ -28,7 +28,7 @@ def test_schema_sql_matches_task_contract_fragments():
     uploads = table_block(schema, "uploads")
     site_settings = table_block(schema, "site_settings")
 
-    assert "role ENUM('user','admin') NOT NULL DEFAULT 'user'" in users
+    assert "role ENUM('super_admin','user') NOT NULL DEFAULT 'user'" in users
     assert "email VARCHAR(255) NOT NULL" in users
     assert "UNIQUE KEY uq_users_username (username)" in users
     assert "UNIQUE KEY uq_users_email (email)" in users
@@ -48,6 +48,19 @@ def test_schema_sql_matches_task_contract_fragments():
     assert "CONSTRAINT fk_uploads_user" in uploads
     assert "KEY idx_uploads_purpose_created (upload_purpose, created_at)" in uploads
     assert "UNIQUE KEY uq_site_settings_key (setting_key)" in site_settings
+
+
+def test_schema_sql_contains_super_admin_control_fields():
+    schema = load_sql_file(BASE_DIR / "database" / "schema.sql")
+    users = table_block(schema, "users")
+    profile = table_block(schema, "profile")
+
+    assert "role ENUM('super_admin','user') NOT NULL DEFAULT 'user'" in users
+    assert "can_publish TINYINT(1) NOT NULL DEFAULT 1" in users
+    assert "ban_reason VARCHAR(255) NULL" in users
+    assert "publish_ban_reason VARCHAR(255) NULL" in users
+    assert "is_public_blocked TINYINT(1) NOT NULL DEFAULT 0" in profile
+    assert "public_block_reason VARCHAR(255) NULL" in profile
 
 
 def test_seed_sql_uses_expected_site_setting_keys_only():

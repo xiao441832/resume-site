@@ -39,7 +39,7 @@ def register_cli(app) -> None:
         script = load_sql_file(BASE_DIR / "database" / "seed.sql")
         executed = execute_script(script)
 
-        admin_id = upsert_user(username, email, display_name, password, "admin")
+        admin_id = upsert_user(username, email, display_name, password, "super_admin")
         demo_user_id = upsert_user(
             demo_username, demo_email, demo_display_name, demo_password, "user"
         )
