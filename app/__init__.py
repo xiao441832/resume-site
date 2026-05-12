@@ -45,7 +45,7 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):
         flash("页面安全校验已过期，请刷新页面后重新提交。", "warning")
-        return redirect(url_for("public.index") + "#contact")
+        return redirect(url_for("public.index") + "#public-resumes")
 
     @app.context_processor
     def inject_admin_resources():

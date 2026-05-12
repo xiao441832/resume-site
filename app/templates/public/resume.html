@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" href="{{ url_for('public.index') }}">{{ settings.site_title|default('多用户简历系统') }}</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="切换导航">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="#skills">技能</a></li>
+        <li class="nav-item"><a class="nav-link" href="#experience">经历</a></li>
+        <li class="nav-item"><a class="nav-link" href="#projects">项目</a></li>
+        <li class="nav-item"><a class="nav-link" href="#education">教育</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">联系</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main id="home">
+  <section class="hero-section">
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mb-4">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+          <p class="text-uppercase text-muted small mb-2">{{ profile.job_status|default('开放机会') }}</p>
+          <h1 class="display-5 fw-bold mb-3">{{ profile.name|default(owner.display_name) }}</h1>
+          <p class="lead mb-3">{{ profile.title|default('') }}</p>
+          {% if profile.summary %}
+            <p class="hero-summary">{{ profile.summary }}</p>
+          {% endif %}
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            {% if profile.email %}<a class="btn btn-primary" href="mailto:{{ profile.email }}">发送邮件</a>{% endif %}
+            {% set resume_url = static_upload_url(profile.resume_file_path) %}
+            {% if resume_url %}<a class="btn btn-outline-secondary" href="{{ resume_url }}">下载简历</a>{% endif %}
+            <a class="btn btn-outline-secondary" href="#contact">留言</a>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="profile-panel">
+            {% set avatar_url = static_upload_url(profile.avatar_path) %}
+            {% if avatar_url %}
+              <img class="profile-avatar" src="{{ avatar_url }}" alt="{{ profile.name }}">
+            {% else %}
+              <div class="profile-avatar profile-avatar-placeholder">{{ profile.name|default(owner.display_name)|first }}</div>
+            {% endif %}
+            <dl class="profile-meta mb-0">
+              {% if profile.city %}<div><dt>城市</dt><dd>{{ profile.city }}</dd></div>{% endif %}
+              {% if profile.phone %}<div><dt>电话</dt><dd>{{ profile.phone }}</dd></div>{% endif %}
+              {% if profile.wechat %}<div><dt>微信</dt><dd>{{ profile.wechat }}</dd></div>{% endif %}
+              {% set github_url = safe_public_url(profile.github_url) %}
+              {% if github_url %}<div><dt>GitHub</dt><dd><a href="{{ github_url }}">{{ github_url }}</a></dd></div>{% endif %}
+              {% set website_url = safe_public_url(profile.website_url) %}
+              {% if website_url %}<div><dt>网站</dt><dd><a href="{{ website_url }}">{{ website_url }}</a></dd></div>{% endif %}
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="section-block">
+    <div class="container">
+      <h2 class="section-title">专业技能</h2>
+      <div class="row g-4">
+        {% for category, skills in skills_by_category.items() %}
+          <div class="col-lg-6">
+            <div class="content-card h-100">
+              <h3 class="h5 mb-3">{{ category }}</h3>
+              {% for skill in skills %}
+                <div class="skill-row">
+                  <div class="d-flex justify-content-between gap-3">
+                    <span class="fw-medium">{{ skill.name }}</span>
+                    <span class="text-muted">{{ skill.proficiency }}%</span>
+                  </div>
+                  <div class="progress" role="progressbar" aria-label="{{ skill.name }}" aria-valuenow="{{ skill.proficiency }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ skill.proficiency }}%;"></div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted">技能信息正在整理中。</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section id="experience" class="section-block bg-soft">
+    <div class="container">
+      <h2 class="section-title">工作经历</h2>
+      <div class="timeline">
+        {% for item in experiences %}
+          <article class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="content-card">
+              <h3 class="h5 mb-1">{{ item.position }}</h3>
+              <p class="text-muted mb-2">{{ item.company }}{% if item.location %} · {{ item.location }}{% endif %}</p>
+              {% if item.description %}<p class="mb-0">{{ item.description }}</p>{% endif %}
+            </div>
+          </article>
+        {% else %}
+          <p class="text-muted">经历信息正在整理中。</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="section-block">
+    <div class="container">
+      <h2 class="section-title">项目作品</h2>
+      <div class="row g-4">
+        {% for project in projects %}
+          <div class="col-md-6 col-xl-4">
+            <article class="content-card project-card h-100">
+              {% set cover_url = static_upload_url(project.cover_image_path) %}
+              {% if cover_url %}
+                <img class="project-cover" src="{{ cover_url }}" alt="{{ project.name }}">
+              {% else %}
+                <div class="project-cover project-cover-placeholder">{{ project.name|first }}</div>
+              {% endif %}
+              <div class="project-body">
+                <h3 class="h5">{{ project.name }}</h3>
+                {% if project.role %}<p class="text-muted mb-2">{{ project.role }}</p>{% endif %}
+                {% if project.summary %}<p>{{ project.summary }}</p>{% endif %}
+                {% if project.tech_stack %}<p class="small text-muted">{{ project.tech_stack }}</p>{% endif %}
+                <div class="d-flex gap-2 flex-wrap">
+                  {% set project_url = safe_public_url(project.project_url) %}
+                  {% if project_url %}<a class="btn btn-sm btn-outline-primary" href="{{ project_url }}">查看项目</a>{% endif %}
+                  {% set source_url = safe_public_url(project.source_url) %}
+                  {% if source_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ source_url }}">源码</a>{% endif %}
+                </div>
+              </div>
+            </article>
+          </div>
+        {% else %}
+          <p class="text-muted">项目作品正在整理中。</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section id="education" class="section-block bg-soft">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <h2 class="section-title">教育背景</h2>
+          {% for item in education %}
+            <article class="content-card mb-3">
+              <h3 class="h5 mb-1">{{ item.school }}</h3>
+              <p class="text-muted mb-2">{{ item.degree }} {{ item.major }}</p>
+              {% if item.description %}<p class="mb-0">{{ item.description }}</p>{% endif %}
+            </article>
+          {% else %}
+            <p class="text-muted">教育信息正在整理中。</p>
+          {% endfor %}
+        </div>
+        <div class="col-lg-6">
+          <h2 class="section-title">证书荣誉</h2>
+          {% for cert in certificates %}
+            <article class="content-card mb-3">
+              <h3 class="h5 mb-1">{{ cert.name }}</h3>
+              <p class="text-muted mb-2">{{ cert.issuer }}{% if cert.issue_date %} · {{ cert.issue_date }}{% endif %}</p>
+              {% if cert.description %}<p class="mb-0">{{ cert.description }}</p>{% endif %}
+            </article>
+          {% else %}
+            <p class="text-muted">证书信息正在整理中。</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section-block">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <h2 class="section-title">联系我</h2>
+          <p class="text-muted">欢迎通过邮件、电话或留言沟通合作机会。</p>
+          {% if profile.email %}<p class="mb-2"><strong>邮箱：</strong><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></p>{% endif %}
+          {% if profile.phone %}<p class="mb-0"><strong>电话：</strong>{{ profile.phone }}</p>{% endif %}
+        </div>
+        <div class="col-lg-7">
+          {% if settings.messages_enabled|default('1') == '1' %}
+            <form class="content-card message-form" method="post" action="{{ url_for('public.submit_message', username=owner.username) }}">
+              {{ form.hidden_tag() }}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  {{ form.name.label(class="form-label") }}
+                  {{ form.name(class="form-control", autocomplete="name") }}
+                </div>
+                <div class="col-md-6">
+                  {{ form.email.label(class="form-label") }}
+                  {{ form.email(class="form-control", autocomplete="email") }}
+                </div>
+                <div class="col-12">
+                  {{ form.phone.label(class="form-label") }}
+                  {{ form.phone(class="form-control", autocomplete="tel") }}
+                </div>
+                <div class="col-12">
+                  {{ form.content.label(class="form-label") }}
+                  {{ form.content(class="form-control", rows="5") }}
+                </div>
+                <div class="col-12">
+                  {{ form.submit(class="btn btn-primary") }}
+                </div>
+              </div>
+            </form>
+          {% else %}
+            <div class="content-card"><p class="mb-0 text-muted">留言功能暂未开放。</p></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+    <span>{{ profile.name|default(owner.display_name) }}</span>
+    {% if settings.icp_text %}<span>{{ settings.icp_text }}</span>{% endif %}
+  </div>
+</footer>
+
+<button type="button" class="back-to-top" aria-label="返回顶部">↑</button>
+{% endblock %}
