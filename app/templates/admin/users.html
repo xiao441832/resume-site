@@ -1,0 +1,72 @@
+{% extends "admin/layout.html" %}
+{% block title %}用户管理{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">用户管理</h1>
+  <form class="d-flex flex-wrap gap-2" method="get">
+    <input class="form-control form-control-sm" type="search" name="q" value="{{ keyword }}" placeholder="搜索用户名、邮箱、昵称">
+    <select class="form-select form-select-sm" name="status">
+      <option value="" {{ "selected" if not status else "" }}>全部状态</option>
+      <option value="active" {{ "selected" if status == "active" else "" }}>正常账号</option>
+      <option value="banned" {{ "selected" if status == "banned" else "" }}>已封号</option>
+      <option value="publish_banned" {{ "selected" if status == "publish_banned" else "" }}>禁止发布</option>
+      <option value="resume_blocked" {{ "selected" if status == "resume_blocked" else "" }}>简历封禁</option>
+    </select>
+    <button class="btn btn-sm btn-primary" type="submit">筛选</button>
+  </form>
+</div>
+
+<div class="content-card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>用户</th>
+          <th>邮箱</th>
+          <th>账号状态</th>
+          <th>发布权限</th>
+          <th>公开简历</th>
+          <th>注册时间</th>
+          <th>最近登录</th>
+          <th class="text-end">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ row.display_name }}</div>
+              <div class="text-secondary small">{{ row.username }}</div>
+            </td>
+            <td>{{ row.email }}</td>
+            <td>
+              <span class="badge text-bg-{{ 'success' if row.is_active else 'danger' }}">
+                {{ "正常" if row.is_active else "已封号" }}
+              </span>
+            </td>
+            <td>
+              <span class="badge text-bg-{{ 'success' if row.can_publish else 'warning' }}">
+                {{ "允许发布" if row.can_publish else "禁止发布" }}
+              </span>
+            </td>
+            <td>
+              <span class="badge text-bg-{{ 'danger' if row.is_public_blocked else 'secondary' }}">
+                {{ "已封禁" if row.is_public_blocked else "未封禁" }}
+              </span>
+            </td>
+            <td>{{ row.created_at or "" }}</td>
+            <td>{{ row.last_login_at or "" }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.user_detail', user_id=row.id) }}">查看</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-secondary">暂无用户</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -33,6 +33,7 @@
           {% endfor %}
           <a class="list-group-item list-group-item-action" href="{{ url_for(area ~ '.messages') }}">留言管理</a>
           {% if area == 'admin' %}
+            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.users') }}">用户管理</a>
             <a class="list-group-item list-group-item-action" href="{{ url_for('admin.settings') }}">站点设置</a>
           {% endif %}
         </div>

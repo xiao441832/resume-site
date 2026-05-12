@@ -13,6 +13,28 @@ from wtforms import (
 from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional
 
 
+class AccountStatusForm(FlaskForm):
+    is_active = BooleanField("启用账号")
+    ban_reason = TextAreaField("封禁原因", validators=[Optional(), Length(max=255)])
+    submit = SubmitField("保存账号状态")
+
+
+class PublishStatusForm(FlaskForm):
+    can_publish = BooleanField("允许发布公开简历")
+    publish_ban_reason = TextAreaField(
+        "禁止发布原因", validators=[Optional(), Length(max=255)]
+    )
+    submit = SubmitField("保存发布权限")
+
+
+class ResumeBlockForm(FlaskForm):
+    is_public_blocked = BooleanField("封禁公开简历")
+    public_block_reason = TextAreaField(
+        "公开简历封禁原因", validators=[Optional(), Length(max=255)]
+    )
+    submit = SubmitField("保存公开简历状态")
+
+
 class SkillForm(FlaskForm):
     name = StringField("技能名称", validators=[DataRequired(), Length(max=120)])
     category = StringField("分类", validators=[DataRequired(), Length(max=120)])

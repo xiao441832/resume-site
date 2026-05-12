@@ -1,13 +1,25 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
-from app.admin.forms import MessageStatusForm, ProfileForm, SettingForm
+from app.admin.forms import (
+    AccountStatusForm,
+    MessageStatusForm,
+    ProfileForm,
+    PublishStatusForm,
+    ResumeBlockForm,
+    SettingForm,
+)
 from app.admin.resources import (
     RESOURCE_CONFIGS,
     build_insert_sql,
     build_update_sql,
     get_resource_config,
 )
-from app.auth.decorators import current_user_id, current_user_role, login_required
+from app.auth.decorators import (
+    current_user_id,
+    is_super_admin,
+    login_required,
+    super_admin_required,
+)
 from app.db import execute, query_all, query_one
 from app.services.upload_service import UploadError, save_upload
 
@@ -27,12 +39,12 @@ def scoped_user_id() -> int:
 
 
 def ensure_area_allowed() -> None:
-    if current_area() == "admin" and current_user_role() != "admin":
+    if current_area() == "admin" and not is_super_admin():
         abort(403)
 
 
 def is_admin_area() -> bool:
-    return current_area() == "admin" and current_user_role() == "admin"
+    return current_area() == "admin" and is_super_admin()
 
 
 def scoped_where(owner_column: str = "user_id") -> tuple[str, tuple]:
@@ -61,6 +73,41 @@ def dashboard_counts() -> dict:
             () if is_admin_area() else (scoped_user_id(),),
         )["total"],
     }
+
+
+def managed_user_or_404(user_id: int) -> dict:
+    user = query_one(
+        """
+        SELECT id, username, email, display_name, role, is_active, can_publish,
+               ban_reason, publish_ban_reason, last_login_at, created_at
+        FROM users
+        WHERE id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+    if not user:
+        abort(404)
+    if user.get("role") == "super_admin":
+        abort(403)
+    return user
+
+
+def user_profile_status(user_id: int) -> dict:
+    return query_one(
+        """
+        SELECT id, name, title, is_active, is_public_blocked, public_block_reason
+        FROM profile
+        WHERE user_id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+    ) or {}
+
+
+def clean_reason(value: str | None) -> str | None:
+    reason = (value or "").strip()
+    return reason or None
 
 
 def form_values(form, columns: tuple[str, ...]) -> list:
@@ -115,6 +162,151 @@ def dashboard():
         counts=dashboard_counts(),
         recent_messages=recent_messages,
     )
+
+
+@admin_bp.route("/users")
+@super_admin_required
+def users():
+    keyword = request.args.get("q", "").strip()
+    status = request.args.get("status", "").strip()
+    where = ["u.role = 'user'"]
+    params: list[str] = []
+
+    if keyword:
+        like = f"%{keyword}%"
+        where.append(
+            "(u.username LIKE %s OR u.email LIKE %s OR u.display_name LIKE %s)"
+        )
+        params.extend([like, like, like])
+    if status == "active":
+        where.append("u.is_active = 1")
+    elif status == "banned":
+        where.append("u.is_active = 0")
+    elif status == "publish_banned":
+        where.append("u.can_publish = 0")
+    elif status == "resume_blocked":
+        where.append("COALESCE(p.is_public_blocked, 0) = 1")
+
+    rows = query_all(
+        f"""
+        SELECT u.id, u.username, u.email, u.display_name, u.is_active,
+               u.can_publish, u.created_at, u.last_login_at,
+               COALESCE(p.is_public_blocked, 0) AS is_public_blocked,
+               p.is_active AS profile_is_active
+        FROM users AS u
+        LEFT JOIN profile AS p ON p.user_id = u.id
+        WHERE {' AND '.join(where)}
+        ORDER BY u.created_at DESC, u.id DESC
+        """,
+        tuple(params),
+    )
+    return render_template(
+        "admin/users.html",
+        rows=rows,
+        keyword=keyword,
+        status=status,
+    )
+
+
+@admin_bp.route("/users/<int:user_id>")
+@super_admin_required
+def user_detail(user_id):
+    user = managed_user_or_404(user_id)
+    profile_status = user_profile_status(user_id)
+    recent_messages = query_all(
+        "SELECT * FROM messages WHERE target_user_id = %s ORDER BY created_at DESC LIMIT 5",
+        (user_id,),
+    )
+    return render_template(
+        "admin/user_detail.html",
+        user=user,
+        profile_status=profile_status,
+        recent_messages=recent_messages,
+        account_form=AccountStatusForm(
+            data={
+                "is_active": int(user.get("is_active") or 0) == 1,
+                "ban_reason": user.get("ban_reason") or "",
+            }
+        ),
+        publish_form=PublishStatusForm(
+            data={
+                "can_publish": int(user.get("can_publish") or 0) == 1,
+                "publish_ban_reason": user.get("publish_ban_reason") or "",
+            }
+        ),
+        resume_form=ResumeBlockForm(
+            data={
+                "is_public_blocked": int(
+                    profile_status.get("is_public_blocked") or 0
+                )
+                == 1,
+                "public_block_reason": profile_status.get("public_block_reason") or "",
+            }
+        ),
+    )
+
+
+@admin_bp.route("/users/<int:user_id>/account-status", methods=["POST"])
+@super_admin_required
+def user_account_status(user_id):
+    managed_user_or_404(user_id)
+    form = AccountStatusForm()
+    if not form.validate_on_submit():
+        abort(400)
+    is_active = 1 if form.is_active.data else 0
+    ban_reason = None if is_active else clean_reason(form.ban_reason.data)
+    execute(
+        "UPDATE users SET is_active = %s, ban_reason = %s WHERE id = %s",
+        (is_active, ban_reason, user_id),
+    )
+    flash("账号状态已更新。", "success")
+    return redirect(url_for("admin.user_detail", user_id=user_id))
+
+
+@admin_bp.route("/users/<int:user_id>/publish-status", methods=["POST"])
+@super_admin_required
+def user_publish_status(user_id):
+    managed_user_or_404(user_id)
+    form = PublishStatusForm()
+    if not form.validate_on_submit():
+        abort(400)
+    can_publish = 1 if form.can_publish.data else 0
+    publish_ban_reason = (
+        None if can_publish else clean_reason(form.publish_ban_reason.data)
+    )
+    execute(
+        """
+        UPDATE users
+        SET can_publish = %s, publish_ban_reason = %s
+        WHERE id = %s
+        """,
+        (can_publish, publish_ban_reason, user_id),
+    )
+    flash("发布权限已更新。", "success")
+    return redirect(url_for("admin.user_detail", user_id=user_id))
+
+
+@admin_bp.route("/users/<int:user_id>/resume-status", methods=["POST"])
+@super_admin_required
+def user_resume_status(user_id):
+    managed_user_or_404(user_id)
+    form = ResumeBlockForm()
+    if not form.validate_on_submit():
+        abort(400)
+    is_public_blocked = 1 if form.is_public_blocked.data else 0
+    public_block_reason = (
+        clean_reason(form.public_block_reason.data) if is_public_blocked else None
+    )
+    execute(
+        """
+        UPDATE profile
+        SET is_public_blocked = %s, public_block_reason = %s
+        WHERE user_id = %s
+        """,
+        (is_public_blocked, public_block_reason, user_id),
+    )
+    flash("公开简历状态已更新。", "success")
+    return redirect(url_for("admin.user_detail", user_id=user_id))
 
 
 @admin_bp.route("/<resource>")

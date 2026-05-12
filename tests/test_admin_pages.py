@@ -3,7 +3,7 @@ def login_admin(client):
         session["user_id"] = 1
         session["username"] = "admin"
         session["display_name"] = "管理员"
-        session["role"] = "admin"
+        session["role"] = "super_admin"
         session["admin_user_id"] = 1
         session["admin_username"] = "admin"
         session["admin_display_name"] = "管理员"
@@ -15,6 +15,113 @@ def login_user(client, user_id=3):
         session["username"] = "student"
         session["display_name"] = "学生用户"
         session["role"] = "user"
+
+
+def test_super_admin_can_view_user_list(client, monkeypatch):
+    login_admin(client)
+
+    monkeypatch.setattr(
+        "app.admin.routes.query_all",
+        lambda sql, params=None: [
+            {
+                "id": 2,
+                "username": "demo",
+                "display_name": "演示用户",
+                "email": "demo@example.com",
+                "is_active": 1,
+                "can_publish": 1,
+                "is_public_blocked": 0,
+                "created_at": "2026-05-12",
+                "last_login_at": None,
+            }
+        ],
+    )
+
+    response = client.get("/admin/users")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "演示用户" in html
+    assert 'href="/admin/users/2"' in html
+
+
+def test_normal_user_cannot_view_user_list(client):
+    login_user(client, user_id=3)
+
+    response = client.get("/admin/users")
+
+    assert response.status_code == 403
+
+
+def test_super_admin_updates_user_account_status(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr(
+        "app.admin.routes.query_one",
+        lambda sql, params=None: {"id": 2, "role": "user", "username": "demo"},
+    )
+    executed = []
+    monkeypatch.setattr(
+        "app.admin.routes.execute",
+        lambda sql, params=None: executed.append((sql, params)) or 1,
+    )
+
+    response = client.post(
+        "/admin/users/2/account-status",
+        data={"ban_reason": "违规注册"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "UPDATE users" in executed[0][0]
+    assert "is_active = %s" in executed[0][0]
+    assert executed[0][1] == (0, "违规注册", 2)
+
+
+def test_super_admin_updates_user_publish_status(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr(
+        "app.admin.routes.query_one",
+        lambda sql, params=None: {"id": 2, "role": "user", "username": "demo"},
+    )
+    executed = []
+    monkeypatch.setattr(
+        "app.admin.routes.execute",
+        lambda sql, params=None: executed.append((sql, params)) or 1,
+    )
+
+    response = client.post(
+        "/admin/users/2/publish-status",
+        data={"publish_ban_reason": "资料不完整"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "can_publish = %s" in executed[0][0]
+    assert executed[0][1] == (0, "资料不完整", 2)
+
+
+def test_super_admin_updates_user_resume_status(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr(
+        "app.admin.routes.query_one",
+        lambda sql, params=None: {"id": 2, "role": "user", "username": "demo"},
+    )
+    executed = []
+    monkeypatch.setattr(
+        "app.admin.routes.execute",
+        lambda sql, params=None: executed.append((sql, params)) or 1,
+    )
+
+    response = client.post(
+        "/admin/users/2/resume-status",
+        data={"is_public_blocked": "y", "public_block_reason": "内容违规"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "UPDATE profile" in executed[0][0]
+    assert "is_public_blocked = %s" in executed[0][0]
+    assert executed[0][1] == (1, "内容违规", 2)
 
 
 def test_resource_list_renders_rows(client, monkeypatch):
