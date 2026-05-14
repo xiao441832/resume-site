@@ -391,6 +391,8 @@ def user_resume_status(user_id):
 @login_required
 def resource_list(resource):
     ensure_area_allowed()
+    if is_admin_area():
+        abort(404)
     try:
         config = get_resource_config(resource)
     except KeyError:
@@ -408,6 +410,8 @@ def resource_list(resource):
 @login_required
 def resource_create(resource):
     ensure_area_allowed()
+    if is_admin_area():
+        abort(404)
     try:
         config = get_resource_config(resource)
     except KeyError:
@@ -428,6 +432,8 @@ def resource_create(resource):
 @login_required
 def resource_edit(resource, item_id):
     ensure_area_allowed()
+    if is_admin_area():
+        abort(404)
     try:
         config = get_resource_config(resource)
     except KeyError:
@@ -457,6 +463,8 @@ def resource_edit(resource, item_id):
 @login_required
 def resource_delete(resource, item_id):
     ensure_area_allowed()
+    if is_admin_area():
+        abort(404)
     try:
         config = get_resource_config(resource)
     except KeyError:
@@ -478,12 +486,11 @@ def resource_delete(resource, item_id):
 def profile():
     ensure_area_allowed()
     if is_admin_area():
-        item = query_one("SELECT * FROM profile ORDER BY id ASC LIMIT 1") or {}
-    else:
-        item = query_one(
-            "SELECT * FROM profile WHERE user_id = %s LIMIT 1",
-            (scoped_user_id(),),
-        ) or {}
+        abort(404)
+    item = query_one(
+        "SELECT * FROM profile WHERE user_id = %s LIMIT 1",
+        (scoped_user_id(),),
+    ) or {}
     publish_policy = current_publish_policy()
     form = ProfileForm(data=item)
     if form.validate_on_submit():

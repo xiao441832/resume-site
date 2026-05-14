@@ -26,15 +26,19 @@
     <div class="row">
       <aside class="col-lg-2 bg-white border-end min-vh-100 p-3">
         <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action" href="{{ url_for(area ~ '.dashboard') }}">仪表盘</a>
-          <a class="list-group-item list-group-item-action" href="{{ url_for(area ~ '.profile') }}">个人信息</a>
-          {% for key, item in resource_configs.items() %}
-            <a class="list-group-item list-group-item-action" href="{{ url_for(area ~ '.resource_list', resource=key) }}">{{ item.title }}</a>
-          {% endfor %}
-          <a class="list-group-item list-group-item-action" href="{{ url_for(area ~ '.messages') }}">留言管理</a>
           {% if area == 'admin' %}
+            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.dashboard') }}">控制台</a>
             <a class="list-group-item list-group-item-action" href="{{ url_for('admin.users') }}">用户管理</a>
+            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.users', status='resume_blocked') }}">简历管理</a>
+            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.messages') }}">留言管理</a>
             <a class="list-group-item list-group-item-action" href="{{ url_for('admin.settings') }}">站点设置</a>
+          {% else %}
+            <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.dashboard') }}">仪表盘</a>
+            <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.profile') }}">个人信息</a>
+            {% for key, item in resource_configs.items() %}
+              <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.resource_list', resource=key) }}">{{ item.title }}</a>
+            {% endfor %}
+            <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.messages') }}">留言管理</a>
           {% endif %}
         </div>
       </aside>

@@ -94,6 +94,51 @@ def test_normal_user_cannot_view_site_settings(client, monkeypatch):
     assert response.status_code == 403
 
 
+def test_super_admin_sidebar_uses_platform_management_menu(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr("app.admin.routes.query_one", lambda sql, params=None: {"total": 0})
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    for label in ("控制台", "用户管理", "简历管理", "留言管理", "站点设置"):
+        assert label in html
+    for label in ("个人信息", "技能", "工作 / 实习经历", "项目经历", "教育经历", "证书"):
+        assert label not in html
+
+
+def test_normal_user_sidebar_keeps_resume_management_menu(client, monkeypatch):
+    login_user(client, user_id=3)
+    monkeypatch.setattr("app.admin.routes.query_one", lambda sql, params=None: {"total": 0})
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/dashboard")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    for label in (
+        "仪表盘",
+        "个人信息",
+        "技能",
+        "工作 / 实习经历",
+        "项目经历",
+        "教育经历",
+        "证书",
+        "留言管理",
+    ):
+        assert label in html
+
+
+def test_super_admin_old_resume_resource_entry_returns_404(client):
+    login_admin(client)
+
+    response = client.get("/admin/skills")
+
+    assert response.status_code == 404
+
+
 def test_super_admin_updates_user_account_status(client, monkeypatch):
     login_admin(client)
     monkeypatch.setattr(
