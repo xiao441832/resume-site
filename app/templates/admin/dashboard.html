@@ -10,7 +10,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin.users') }}">用户管理</a>
-      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin.users', status='resume_blocked') }}">简历管理</a>
+      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin.resumes') }}">简历管理</a>
       <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin.messages') }}">留言管理</a>
     </div>
   </div>
@@ -25,10 +25,10 @@
         <a class="btn btn-light border w-100 text-start" href="{{ url_for('admin.users', status='banned') }}">查看封号用户</a>
       </div>
       <div class="col-md-4">
-        <a class="btn btn-light border w-100 text-start" href="{{ url_for('admin.users', status='publish_banned') }}">查看禁止发布账号</a>
+        <a class="btn btn-light border w-100 text-start" href="{{ url_for('admin.resumes', status='publish_banned') }}">查看禁止发布账号</a>
       </div>
       <div class="col-md-4">
-        <a class="btn btn-light border w-100 text-start" href="{{ url_for('admin.users', status='resume_blocked') }}">查看封禁简历</a>
+        <a class="btn btn-light border w-100 text-start" href="{{ url_for('admin.resumes', status='blocked') }}">查看封禁简历</a>
       </div>
     </div>
   </div>

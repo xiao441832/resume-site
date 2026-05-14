@@ -183,6 +183,46 @@ def test_super_admin_old_resume_resource_entry_returns_404(client):
     assert response.status_code == 404
 
 
+def test_super_admin_can_view_resume_management(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr(
+        "app.admin.routes.query_all",
+        lambda sql, params=None: [
+            {
+                "user_id": 2,
+                "username": "demo",
+                "display_name": "演示用户",
+                "name": "张三",
+                "title": "Python 工程师",
+                "city": "杭州",
+                "user_is_active": 1,
+                "can_publish": 1,
+                "profile_is_active": 1,
+                "is_public_blocked": 0,
+                "updated_at": "2026-05-15",
+            }
+        ],
+    )
+
+    response = client.get("/admin/resumes")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "简历管理" in html
+    assert "演示用户" in html
+    assert "Python 工程师" in html
+    assert 'href="/admin/users/2"' in html
+    assert 'href="/u/demo"' in html
+
+
+def test_normal_user_cannot_view_resume_management(client):
+    login_user(client, user_id=3)
+
+    response = client.get("/admin/resumes")
+
+    assert response.status_code == 403
+
+
 def test_super_admin_updates_user_account_status(client, monkeypatch):
     login_admin(client)
     monkeypatch.setattr(

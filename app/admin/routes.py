@@ -395,6 +395,45 @@ def user_resume_status(user_id):
     return redirect(url_for("admin.user_detail", user_id=user_id))
 
 
+@admin_bp.route("/resumes")
+@super_admin_required
+def resumes():
+    status = request.args.get("status", "").strip()
+    where = ["u.role = 'user'"]
+    if status == "public":
+        where.extend(
+            [
+                "u.is_active = 1",
+                "u.can_publish = 1",
+                "COALESCE(p.is_active, 0) = 1",
+                "COALESCE(p.is_public_blocked, 0) = 0",
+            ]
+        )
+    elif status == "hidden":
+        where.append("COALESCE(p.is_active, 0) = 0")
+    elif status == "publish_banned":
+        where.append("u.can_publish = 0")
+    elif status == "blocked":
+        where.append("COALESCE(p.is_public_blocked, 0) = 1")
+    elif status == "account_banned":
+        where.append("u.is_active = 0")
+
+    rows = query_all(
+        f"""
+        SELECT u.id AS user_id, u.username, u.display_name,
+               u.is_active AS user_is_active, u.can_publish,
+               p.name, p.title, p.city, p.is_active AS profile_is_active,
+               COALESCE(p.is_public_blocked, 0) AS is_public_blocked,
+               p.updated_at
+        FROM users AS u
+        LEFT JOIN profile AS p ON p.user_id = u.id
+        WHERE {' AND '.join(where)}
+        ORDER BY p.updated_at DESC, u.created_at DESC, u.id DESC
+        """
+    )
+    return render_template("admin/resumes.html", rows=rows, status=status)
+
+
 @admin_bp.route("/<resource>")
 @dashboard_bp.route("/<resource>")
 @login_required
