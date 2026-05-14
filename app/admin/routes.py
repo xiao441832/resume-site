@@ -150,6 +150,21 @@ def user_profile_status(user_id: int) -> dict:
     ) or {}
 
 
+def user_content_counts(user_id: int) -> dict:
+    count_queries = {
+        "skills": "SELECT COUNT(*) AS total FROM skills WHERE user_id = %s",
+        "experiences": "SELECT COUNT(*) AS total FROM experiences WHERE user_id = %s",
+        "projects": "SELECT COUNT(*) AS total FROM projects WHERE user_id = %s",
+        "education": "SELECT COUNT(*) AS total FROM education WHERE user_id = %s",
+        "certificates": "SELECT COUNT(*) AS total FROM certificates WHERE user_id = %s",
+        "messages": "SELECT COUNT(*) AS total FROM messages WHERE target_user_id = %s",
+    }
+    return {
+        key: (query_one(sql, (user_id,)) or {}).get("total", 0)
+        for key, sql in count_queries.items()
+    }
+
+
 def clean_reason(value: str | None) -> str | None:
     reason = (value or "").strip()
     return reason or None
@@ -278,7 +293,15 @@ def users():
         SELECT u.id, u.username, u.email, u.display_name, u.is_active,
                u.can_publish, u.created_at, u.last_login_at,
                COALESCE(p.is_public_blocked, 0) AS is_public_blocked,
-               p.is_active AS profile_is_active
+               p.is_active AS profile_is_active,
+               (
+                   (SELECT COUNT(*) FROM skills WHERE user_id = u.id)
+                   + (SELECT COUNT(*) FROM experiences WHERE user_id = u.id)
+                   + (SELECT COUNT(*) FROM projects WHERE user_id = u.id)
+                   + (SELECT COUNT(*) FROM education WHERE user_id = u.id)
+                   + (SELECT COUNT(*) FROM certificates WHERE user_id = u.id)
+               ) AS content_count,
+               (SELECT COUNT(*) FROM messages WHERE target_user_id = u.id) AS message_count
         FROM users AS u
         LEFT JOIN profile AS p ON p.user_id = u.id
         WHERE {' AND '.join(where)}
@@ -299,6 +322,7 @@ def users():
 def user_detail(user_id):
     user = managed_user_or_404(user_id)
     profile_status = user_profile_status(user_id)
+    content_counts = user_content_counts(user_id)
     recent_messages = query_all(
         "SELECT * FROM messages WHERE target_user_id = %s ORDER BY created_at DESC LIMIT 5",
         (user_id,),
@@ -307,6 +331,7 @@ def user_detail(user_id):
         "admin/user_detail.html",
         user=user,
         profile_status=profile_status,
+        content_counts=content_counts,
         recent_messages=recent_messages,
         account_form=AccountStatusForm(
             data={

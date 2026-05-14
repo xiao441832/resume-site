@@ -45,6 +45,37 @@ def test_super_admin_can_view_user_list(client, monkeypatch):
     assert 'href="/admin/users/2"' in html
 
 
+def test_user_management_shows_content_and_message_counts(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr(
+        "app.admin.routes.query_all",
+        lambda sql, params=None: [
+            {
+                "id": 2,
+                "username": "demo",
+                "display_name": "演示用户",
+                "email": "demo@example.com",
+                "is_active": 1,
+                "can_publish": 1,
+                "is_public_blocked": 0,
+                "content_count": 6,
+                "message_count": 2,
+                "created_at": "2026-05-15",
+                "last_login_at": None,
+            }
+        ],
+    )
+
+    response = client.get("/admin/users")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "内容数量" in html
+    assert "留言数量" in html
+    assert ">6<" in html
+    assert ">2<" in html
+
+
 def test_super_admin_dashboard_shows_system_counts(client, monkeypatch):
     login_admin(client)
 
@@ -221,6 +252,38 @@ def test_normal_user_cannot_view_resume_management(client):
     response = client.get("/admin/resumes")
 
     assert response.status_code == 403
+
+
+def test_user_detail_shows_account_archive_sections(client, monkeypatch):
+    login_admin(client)
+
+    def fake_query_one(sql, params=None):
+        if "COUNT(*) AS total" in sql:
+            return {"total": 1}
+        return {
+            "id": 2,
+            "username": "demo",
+            "email": "demo@example.com",
+            "display_name": "演示用户",
+            "role": "user",
+            "is_active": 1,
+            "can_publish": 1,
+            "ban_reason": None,
+            "publish_ban_reason": None,
+            "last_login_at": None,
+            "created_at": "2026-05-15",
+        }
+
+    monkeypatch.setattr("app.admin.routes.query_one", fake_query_one)
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin/users/2")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "账号档案" in html
+    assert "简历数据概览" in html
+    assert "查看公开简历" in html
 
 
 def test_super_admin_updates_user_account_status(client, monkeypatch):

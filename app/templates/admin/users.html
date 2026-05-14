@@ -26,6 +26,8 @@
           <th>账号状态</th>
           <th>发布权限</th>
           <th>公开简历</th>
+          <th>内容数量</th>
+          <th>留言数量</th>
           <th>注册时间</th>
           <th>最近登录</th>
           <th class="text-end">操作</th>
@@ -54,6 +56,8 @@
                 {{ "已封禁" if row.is_public_blocked else "未封禁" }}
               </span>
             </td>
+            <td>{{ row.content_count or 0 }}</td>
+            <td>{{ row.message_count or 0 }}</td>
             <td>{{ row.created_at or "" }}</td>
             <td>{{ row.last_login_at or "" }}</td>
             <td class="text-end">
@@ -62,7 +66,7 @@
           </tr>
         {% else %}
           <tr>
-            <td colspan="8" class="text-secondary">暂无用户</td>
+            <td colspan="10" class="text-secondary">暂无用户</td>
           </tr>
         {% endfor %}
       </tbody>

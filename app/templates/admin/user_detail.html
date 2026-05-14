@@ -1,34 +1,74 @@
 {% extends "admin/layout.html" %}
-{% block title %}用户详情{% endblock %}
+{% block title %}账号档案{% endblock %}
 {% block content %}
 <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
   <div>
-    <h1 class="h3 mb-1">{{ user.display_name }}</h1>
-    <div class="text-secondary">{{ user.username }} · {{ user.email }}</div>
+    <h1 class="h3 mb-1">账号档案</h1>
+    <div class="text-secondary">{{ user.display_name }} · {{ user.username }} · {{ user.email }}</div>
   </div>
-  <a class="btn btn-outline-secondary" href="{{ url_for('admin.users') }}">返回用户管理</a>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-primary" href="{{ url_for('public.user_resume', username=user.username) }}">查看公开简历</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.users') }}">返回用户管理</a>
+  </div>
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="content-card h-100">
       <div class="text-secondary">账号状态</div>
       <div class="fs-5 fw-semibold">{{ "正常" if user.is_active else "已封号" }}</div>
       {% if user.ban_reason %}<div class="small text-danger mt-2">{{ user.ban_reason }}</div>{% endif %}
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="content-card h-100">
       <div class="text-secondary">发布权限</div>
       <div class="fs-5 fw-semibold">{{ "允许发布" if user.can_publish else "禁止发布" }}</div>
       {% if user.publish_ban_reason %}<div class="small text-warning mt-2">{{ user.publish_ban_reason }}</div>{% endif %}
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="content-card h-100">
       <div class="text-secondary">公开简历</div>
       <div class="fs-5 fw-semibold">{{ "已封禁" if profile_status.is_public_blocked else "未封禁" }}</div>
       {% if profile_status.public_block_reason %}<div class="small text-danger mt-2">{{ profile_status.public_block_reason }}</div>{% endif %}
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="content-card h-100">
+      <div class="text-secondary">注册时间</div>
+      <div class="fs-6 fw-semibold">{{ user.created_at or "暂无记录" }}</div>
+      <div class="small text-secondary mt-2">最近登录：{{ user.last_login_at or "暂无记录" }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="content-card mb-3">
+  <h2 class="h5">简历数据概览</h2>
+  <div class="row g-3">
+    <div class="col-md-2 col-6">
+      <div class="text-secondary">技能</div>
+      <div class="fs-4 fw-bold">{{ content_counts.skills }}</div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="text-secondary">工作经历</div>
+      <div class="fs-4 fw-bold">{{ content_counts.experiences }}</div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="text-secondary">项目经历</div>
+      <div class="fs-4 fw-bold">{{ content_counts.projects }}</div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="text-secondary">教育经历</div>
+      <div class="fs-4 fw-bold">{{ content_counts.education }}</div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="text-secondary">证书</div>
+      <div class="fs-4 fw-bold">{{ content_counts.certificates }}</div>
+    </div>
+    <div class="col-md-2 col-6">
+      <div class="text-secondary">留言</div>
+      <div class="fs-4 fw-bold">{{ content_counts.messages }}</div>
     </div>
   </div>
 </div>
