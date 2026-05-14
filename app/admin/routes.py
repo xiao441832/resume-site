@@ -662,7 +662,15 @@ def profile():
 def messages():
     ensure_area_allowed()
     if is_admin_area():
-        rows = query_all("SELECT * FROM messages ORDER BY created_at DESC")
+        rows = query_all(
+            """
+            SELECT m.*, u.username AS target_username,
+                   u.display_name AS target_display_name
+            FROM messages AS m
+            INNER JOIN users AS u ON u.id = m.target_user_id
+            ORDER BY m.created_at DESC
+            """
+        )
     else:
         rows = query_all(
             "SELECT * FROM messages WHERE target_user_id = %s ORDER BY created_at DESC",

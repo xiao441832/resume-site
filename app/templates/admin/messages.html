@@ -8,12 +8,25 @@
   <div class="table-responsive">
     <table class="table align-middle mb-0">
       <thead>
-        <tr><th>姓名</th><th>邮箱</th><th>状态</th><th>时间</th><th class="text-end">操作</th></tr>
+        <tr>
+          <th>姓名</th>
+          {% if area == 'admin' %}<th>目标用户</th>{% endif %}
+          <th>邮箱</th>
+          <th>状态</th>
+          <th>时间</th>
+          <th class="text-end">操作</th>
+        </tr>
       </thead>
       <tbody>
         {% for row in rows %}
           <tr>
             <td>{{ row.name }}</td>
+            {% if area == 'admin' %}
+              <td>
+                <div>{{ row.target_display_name or row.target_username }}</div>
+                <div class="text-secondary small">{{ row.target_username }}</div>
+              </td>
+            {% endif %}
             <td>{{ row.email }}</td>
             <td><span class="badge text-bg-secondary">{{ row.status }}</span></td>
             <td>{{ row.created_at }}</td>
@@ -28,7 +41,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td class="text-secondary" colspan="5">暂无留言</td></tr>
+          <tr><td class="text-secondary" colspan="{{ 6 if area == 'admin' else 5 }}">暂无留言</td></tr>
         {% endfor %}
       </tbody>
     </table>

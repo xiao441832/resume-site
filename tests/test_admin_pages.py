@@ -517,6 +517,34 @@ def test_message_detail_updates_status(client, monkeypatch):
     assert executed[0][1] == ("handled", "已回复", 9, 3)
 
 
+def test_super_admin_messages_show_target_user(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr(
+        "app.admin.routes.query_all",
+        lambda sql, params=None: [
+            {
+                "id": 9,
+                "name": "访客",
+                "email": "visitor@example.com",
+                "phone": "",
+                "content": "你好",
+                "status": "unread",
+                "created_at": "2026-05-15",
+                "target_username": "demo",
+                "target_display_name": "演示用户",
+            }
+        ],
+    )
+
+    response = client.get("/admin/messages")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "目标用户" in html
+    assert "演示用户" in html
+    assert "demo" in html
+
+
 def test_settings_post_upserts_site_settings(client, monkeypatch):
     login_admin(client)
     monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
