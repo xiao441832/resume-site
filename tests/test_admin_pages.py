@@ -77,6 +77,50 @@ def test_super_admin_dashboard_shows_system_counts(client, monkeypatch):
     assert "封禁简历" in html
 
 
+def test_super_admin_dashboard_is_system_console(client, monkeypatch):
+    login_admin(client)
+
+    def fake_query_one(sql, params=None):
+        return {"total": 5}
+
+    def fake_query_all(sql, params=None):
+        if "FROM users" in sql:
+            return [
+                {
+                    "id": 2,
+                    "username": "demo",
+                    "display_name": "演示用户",
+                    "email": "demo@example.com",
+                    "is_active": 1,
+                    "can_publish": 1,
+                    "created_at": "2026-05-15",
+                }
+            ]
+        return [
+            {
+                "name": "访客",
+                "email": "visitor@example.com",
+                "status": "unread",
+                "created_at": "2026-05-15",
+                "target_username": "demo",
+            }
+        ]
+
+    monkeypatch.setattr("app.admin.routes.query_one", fake_query_one)
+    monkeypatch.setattr("app.admin.routes.query_all", fake_query_all)
+
+    response = client.get("/admin")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "系统控制台" in html
+    assert "快捷操作" in html
+    assert "最近注册用户" in html
+    assert "最近留言" in html
+    assert "target_username" not in html
+    assert "demo" in html
+
+
 def test_normal_user_cannot_view_user_list(client):
     login_user(client, user_id=3)
 

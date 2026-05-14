@@ -217,7 +217,16 @@ def record_upload(upload: dict) -> None:
 def dashboard():
     ensure_area_allowed()
     if is_admin_area():
-        recent_messages = query_all("SELECT * FROM messages ORDER BY created_at DESC LIMIT 5")
+        recent_messages = query_all(
+            """
+            SELECT m.*, u.username AS target_username,
+                   u.display_name AS target_display_name
+            FROM messages AS m
+            INNER JOIN users AS u ON u.id = m.target_user_id
+            ORDER BY m.created_at DESC
+            LIMIT 5
+            """
+        )
         recent_users = query_all(
             """
             SELECT id, username, display_name, email, is_active, can_publish, created_at
