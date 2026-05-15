@@ -364,13 +364,27 @@ a:hover {
     padding: 48px 0 40px;
   }
 
+  .display-5 {
+    font-size: 2rem;
+  }
+
   .section-block {
     padding: 44px 0;
   }
 
   .content-card,
-  .profile-panel {
-    padding: 20px;
+  .profile-panel,
+  .filter-toolbar {
+    padding: 18px;
+  }
+
+  .table-responsive {
+    border-radius: 8px;
+  }
+
+  .page-heading .btn,
+  .filter-toolbar .btn {
+    width: 100%;
   }
 }
 
