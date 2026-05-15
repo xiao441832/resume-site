@@ -114,6 +114,33 @@ def test_admin_layout_uses_product_backend_shell(client, monkeypatch):
     assert "个人信息" not in html
 
 
+def test_admin_dashboard_uses_metric_cards(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr("app.admin.routes.query_one", lambda sql, params=None: {"total": 0})
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "metric-card" in html
+    assert "page-heading" in html
+    assert "bi-activity" in html
+
+
+def test_admin_list_pages_use_polished_tables(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin/users")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "filter-toolbar" in html
+    assert "table-polished" in html
+    assert "status-badge" in html
+
+
 def test_main_css_contains_blue_theme_tokens():
     css = open("app/static/css/main.css", encoding="utf-8").read()
 

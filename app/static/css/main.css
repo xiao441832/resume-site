@@ -296,6 +296,48 @@ a:hover {
   border-bottom: 1px solid var(--line);
 }
 
+.page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  min-height: 118px;
+}
+
+.metric-card i {
+  color: var(--brand);
+  font-size: 1.35rem;
+}
+
+.filter-toolbar {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.table-polished thead th {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: var(--surface);
+}
+
+.status-badge {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.form-panel .form-label {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .site-footer {
   padding: 28px 0;
   color: var(--muted);

@@ -2,9 +2,14 @@
 {% block title %}{{ config.title }}{% endblock %}
 {% block content %}
 {% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
-<h1 class="h3 mb-3">{{ config.title }}</h1>
+<div class="page-heading">
+  <div>
+    <h1 class="h3 mb-1">{{ config.title }}</h1>
+    <div class="text-secondary">维护简历内容条目。</div>
+  </div>
+</div>
 
-<form method="post" class="content-card">
+<form method="post" class="content-card form-panel">
   {{ form.hidden_tag() }}
   <div class="row g-3">
     {% for field in form if field.name not in ["csrf_token", "submit"] %}
@@ -28,7 +33,7 @@
     {% endfor %}
     <div class="col-12 d-flex gap-2">
       {{ form.submit(class="btn btn-primary") }}
-      <a class="btn btn-outline-secondary" href="{{ url_for(area ~ '.resource_list', resource=config.key) }}">返回</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for(area ~ '.resource_list', resource=config.key) }}"><i class="bi bi-arrow-left me-1"></i>返回</a>
     </div>
   </div>
 </form>

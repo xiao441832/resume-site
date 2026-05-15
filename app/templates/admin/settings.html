@@ -1,9 +1,14 @@
 {% extends "admin/layout.html" %}
 {% block title %}站点设置{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">站点设置</h1>
+<div class="page-heading">
+  <div>
+    <h1 class="h3 mb-1">站点设置</h1>
+    <div class="text-secondary">维护站点标题、SEO 和留言开关。</div>
+  </div>
+</div>
 
-<form method="post" class="content-card">
+<form method="post" class="content-card form-panel">
   {{ form.hidden_tag() }}
   <div class="mb-3">
     {{ form.site_title.label(class="form-label") }}

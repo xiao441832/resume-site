@@ -2,14 +2,14 @@
 {% block title %}{{ config.title }}{% endblock %}
 {% block content %}
 {% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
-<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+<div class="page-heading">
   <h1 class="h3 mb-0">{{ config.title }}</h1>
-  <a class="btn btn-primary" href="{{ url_for(area ~ '.resource_create', resource=config.key) }}">新增</a>
+  <a class="btn btn-primary" href="{{ url_for(area ~ '.resource_create', resource=config.key) }}"><i class="bi bi-plus-circle me-1"></i>新增</a>
 </div>
 
 <div class="content-card">
   <div class="table-responsive">
-    <table class="table align-middle mb-0">
+    <table class="table table-polished align-middle mb-0">
       <thead>
         <tr>
           {% for column in config.list_columns %}
@@ -24,7 +24,7 @@
             {% for column in config.list_columns %}
               <td>
                 {% if column == "is_active" %}
-                  <span class="badge text-bg-{{ 'success' if row[column] else 'secondary' }}">{{ "展示" if row[column] else "隐藏" }}</span>
+                  <span class="badge text-bg-{{ 'success' if row[column] else 'secondary' }} status-badge">{{ "展示" if row[column] else "隐藏" }}</span>
                 {% else %}
                   {{ row[column] if row[column] is not none else "" }}
                 {% endif %}
@@ -32,10 +32,10 @@
             {% endfor %}
             <td>
               <div class="d-flex justify-content-end gap-2">
-                <a class="btn btn-sm btn-outline-primary" href="{{ url_for(area ~ '.resource_edit', resource=config.key, item_id=row.id) }}">编辑</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for(area ~ '.resource_edit', resource=config.key, item_id=row.id) }}"><i class="bi bi-pencil-square me-1"></i>编辑</a>
                 <form method="post" action="{{ url_for(area ~ '.resource_delete', resource=config.key, item_id=row.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-sm btn-outline-danger" data-confirm="确认删除？" type="submit">删除</button>
+                  <button class="btn btn-sm btn-outline-danger" data-confirm="确认删除？" type="submit"><i class="bi bi-trash me-1"></i>删除</button>
                 </form>
               </div>
             </td>

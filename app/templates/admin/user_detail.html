@@ -1,41 +1,45 @@
 {% extends "admin/layout.html" %}
 {% block title %}账号档案{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+<div class="page-heading">
   <div>
     <h1 class="h3 mb-1">账号档案</h1>
     <div class="text-secondary">{{ user.display_name }} · {{ user.username }} · {{ user.email }}</div>
   </div>
   <div class="d-flex flex-wrap gap-2">
-    <a class="btn btn-outline-primary" href="{{ url_for('public.user_resume', username=user.username) }}">查看公开简历</a>
-    <a class="btn btn-outline-secondary" href="{{ url_for('admin.users') }}">返回用户管理</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('public.user_resume', username=user.username) }}"><i class="bi bi-eye me-1"></i>查看公开简历</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin.users') }}"><i class="bi bi-arrow-left me-1"></i>返回用户管理</a>
   </div>
 </div>
 
 <div class="row g-3 mb-3">
   <div class="col-md-3">
-    <div class="content-card h-100">
+    <div class="content-card metric-card h-100">
+      <i class="bi bi-person-check"></i>
       <div class="text-secondary">账号状态</div>
       <div class="fs-5 fw-semibold">{{ "正常" if user.is_active else "已封号" }}</div>
       {% if user.ban_reason %}<div class="small text-danger mt-2">{{ user.ban_reason }}</div>{% endif %}
     </div>
   </div>
   <div class="col-md-3">
-    <div class="content-card h-100">
+    <div class="content-card metric-card h-100">
+      <i class="bi bi-send-check"></i>
       <div class="text-secondary">发布权限</div>
       <div class="fs-5 fw-semibold">{{ "允许发布" if user.can_publish else "禁止发布" }}</div>
       {% if user.publish_ban_reason %}<div class="small text-warning mt-2">{{ user.publish_ban_reason }}</div>{% endif %}
     </div>
   </div>
   <div class="col-md-3">
-    <div class="content-card h-100">
+    <div class="content-card metric-card h-100">
+      <i class="bi bi-file-earmark-person"></i>
       <div class="text-secondary">公开简历</div>
       <div class="fs-5 fw-semibold">{{ "已封禁" if profile_status.is_public_blocked else "未封禁" }}</div>
       {% if profile_status.public_block_reason %}<div class="small text-danger mt-2">{{ profile_status.public_block_reason }}</div>{% endif %}
     </div>
   </div>
   <div class="col-md-3">
-    <div class="content-card h-100">
+    <div class="content-card metric-card h-100">
+      <i class="bi bi-clock-history"></i>
       <div class="text-secondary">注册时间</div>
       <div class="fs-6 fw-semibold">{{ user.created_at or "暂无记录" }}</div>
       <div class="small text-secondary mt-2">最近登录：{{ user.last_login_at or "暂无记录" }}</div>
@@ -75,7 +79,7 @@
 
 <div class="row g-3">
   <div class="col-lg-4">
-    <form class="content-card h-100" method="post" action="{{ url_for('admin.user_account_status', user_id=user.id) }}">
+    <form class="content-card form-panel h-100" method="post" action="{{ url_for('admin.user_account_status', user_id=user.id) }}">
       {{ account_form.hidden_tag() }}
       <h2 class="h5">账号封禁</h2>
       <div class="form-check form-switch mb-3">
@@ -91,7 +95,7 @@
   </div>
 
   <div class="col-lg-4">
-    <form class="content-card h-100" method="post" action="{{ url_for('admin.user_publish_status', user_id=user.id) }}">
+    <form class="content-card form-panel h-100" method="post" action="{{ url_for('admin.user_publish_status', user_id=user.id) }}">
       {{ publish_form.hidden_tag() }}
       <h2 class="h5">发布权限</h2>
       <div class="form-check form-switch mb-3">
@@ -107,7 +111,7 @@
   </div>
 
   <div class="col-lg-4">
-    <form class="content-card h-100" method="post" action="{{ url_for('admin.user_resume_status', user_id=user.id) }}">
+    <form class="content-card form-panel h-100" method="post" action="{{ url_for('admin.user_resume_status', user_id=user.id) }}">
       {{ resume_form.hidden_tag() }}
       <h2 class="h5">公开简历</h2>
       <div class="form-check form-switch mb-3">
@@ -126,14 +130,14 @@
 <div class="content-card mt-3">
   <h2 class="h5">最近留言</h2>
   <div class="table-responsive">
-    <table class="table align-middle mb-0">
+    <table class="table table-polished align-middle mb-0">
       <thead><tr><th>姓名</th><th>邮箱</th><th>状态</th><th>时间</th></tr></thead>
       <tbody>
         {% for message in recent_messages %}
           <tr>
             <td>{{ message.name }}</td>
             <td>{{ message.email }}</td>
-            <td>{{ message.status }}</td>
+            <td><span class="badge text-bg-secondary status-badge">{{ message.status }}</span></td>
             <td>{{ message.created_at }}</td>
           </tr>
         {% else %}
