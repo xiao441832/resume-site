@@ -96,6 +96,24 @@ def test_admin_pages_load_bootstrap_icons(client, monkeypatch):
     assert "bootstrap-icons" in html
 
 
+def test_admin_layout_uses_product_backend_shell(client, monkeypatch):
+    login_admin(client)
+    monkeypatch.setattr("app.admin.routes.query_one", lambda sql, params=None: {"total": 0})
+    monkeypatch.setattr("app.admin.routes.query_all", lambda sql, params=None: [])
+
+    response = client.get("/admin")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "admin-shell" in html
+    assert "admin-sidebar" in html
+    assert "admin-topbar" in html
+    assert "bi-speedometer2" in html
+    assert "bi-people" in html
+    assert "bi-file-earmark-person" in html
+    assert "个人信息" not in html
+
+
 def test_main_css_contains_blue_theme_tokens():
     css = open("app/static/css/main.css", encoding="utf-8").read()
 

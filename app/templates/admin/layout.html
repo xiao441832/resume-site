@@ -9,9 +9,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="admin-body">
   {% set area = 'admin' if request.blueprint == 'admin' else 'dashboard' %}
-  <nav class="navbar navbar-expand-lg bg-white border-bottom">
+  <nav class="navbar navbar-expand-lg admin-topbar">
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ url_for(area ~ '.dashboard') }}">后台管理</a>
       <div class="d-flex align-items-center gap-3">
@@ -23,23 +23,30 @@
       </div>
     </div>
   </nav>
-  <div class="container-fluid">
+  <div class="container-fluid admin-shell">
     <div class="row">
-      <aside class="col-lg-2 bg-white border-end min-vh-100 p-3">
+      <aside class="col-lg-2 admin-sidebar min-vh-100 p-3">
         <div class="list-group list-group-flush">
           {% if area == 'admin' %}
-            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.dashboard') }}">控制台</a>
-            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.users') }}">用户管理</a>
-            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.resumes') }}">简历管理</a>
-            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.messages') }}">留言管理</a>
-            <a class="list-group-item list-group-item-action" href="{{ url_for('admin.settings') }}">站点设置</a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i><span>控制台</span></a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i><span>用户管理</span></a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('admin.resumes') }}"><i class="bi bi-file-earmark-person"></i><span>简历管理</span></a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('admin.messages') }}"><i class="bi bi-chat-left-text"></i><span>留言管理</span></a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('admin.settings') }}"><i class="bi bi-gear"></i><span>站点设置</span></a>
           {% else %}
-            <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.dashboard') }}">仪表盘</a>
-            <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.profile') }}">个人信息</a>
+            {% set resource_icons = {
+              'skills': 'bi-lightning-charge',
+              'experiences': 'bi-briefcase',
+              'projects': 'bi-kanban',
+              'education': 'bi-mortarboard',
+              'certificates': 'bi-award'
+            } %}
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('dashboard.dashboard') }}"><i class="bi bi-grid"></i><span>仪表盘</span></a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('dashboard.profile') }}"><i class="bi bi-person-vcard"></i><span>个人信息</span></a>
             {% for key, item in resource_configs.items() %}
-              <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.resource_list', resource=key) }}">{{ item.title }}</a>
+              <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('dashboard.resource_list', resource=key) }}"><i class="bi {{ resource_icons.get(key, 'bi-folder') }}"></i><span>{{ item.title }}</span></a>
             {% endfor %}
-            <a class="list-group-item list-group-item-action" href="{{ url_for('dashboard.messages') }}">留言管理</a>
+            <a class="list-group-item list-group-item-action admin-nav-link" href="{{ url_for('dashboard.messages') }}"><i class="bi bi-chat-left-text"></i><span>留言管理</span></a>
           {% endif %}
         </div>
       </aside>

@@ -261,6 +261,41 @@ a:hover {
   resize: vertical;
 }
 
+.admin-body {
+  background: var(--soft);
+}
+
+.admin-shell {
+  min-height: calc(100vh - 57px);
+}
+
+.admin-sidebar {
+  background: var(--sidebar);
+  color: #fff;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--sidebar-muted);
+  border: 0;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  background: transparent;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link:focus {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
 .site-footer {
   padding: 28px 0;
   color: var(--muted);
@@ -294,5 +329,11 @@ a:hover {
   .content-card,
   .profile-panel {
     padding: 20px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    min-height: auto !important;
   }
 }
