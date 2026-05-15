@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block body %}
-<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+<nav class="navbar public-navbar navbar-expand-lg sticky-top">
   <div class="container">
     <a class="navbar-brand fw-semibold" href="{{ url_for('public.index') }}">{{ settings.site_title|default('多用户简历系统') }}</a>
     <div class="d-flex gap-2">
@@ -12,7 +12,7 @@
 </nav>
 
 <main>
-  <section class="hero-section">
+  <section class="hero-section public-hero">
     <div class="container">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
@@ -21,16 +21,16 @@
       {% endwith %}
       <div class="row align-items-center g-4">
         <div class="col-lg-7">
-          <p class="text-uppercase text-muted small mb-2">Resume Platform</p>
+          <p class="eyebrow mb-2">Resume Platform</p>
           <h1 class="display-5 fw-bold mb-3">{{ settings.site_title|default('多用户在线简历管理系统') }}</h1>
-          <p class="lead mb-0">用户可以维护自己的简历内容，并生成公开展示页面。</p>
+          <p class="lead hero-summary mb-0">维护简历内容，生成公开展示页面，让作品和经历更清楚地呈现。</p>
         </div>
         <div class="col-lg-5">
-          <form class="content-card" method="get" action="{{ url_for('public.index') }}">
+          <form class="content-card search-panel" method="get" action="{{ url_for('public.index') }}">
             <label class="form-label" for="q">搜索公开简历</label>
             <div class="input-group">
               <input id="q" class="form-control" type="search" name="q" value="{{ keyword }}" placeholder="姓名、岗位、城市或简介">
-              <button class="btn btn-primary" type="submit">搜索</button>
+              <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> 搜索</button>
             </div>
           </form>
         </div>
@@ -44,7 +44,7 @@
       <div class="row g-4">
         {% for resume in resumes %}
           <div class="col-md-6 col-xl-4">
-            <article class="content-card h-100">
+            <article class="content-card resume-card h-100">
               <div class="d-flex align-items-center gap-3 mb-3">
                 {% set avatar_url = static_upload_url(resume.avatar_path) %}
                 {% if avatar_url %}
@@ -57,9 +57,9 @@
                   <p class="text-muted mb-0">{{ resume.title }}</p>
                 </div>
               </div>
-              {% if resume.city %}<p class="text-muted small mb-2">{{ resume.city }}</p>{% endif %}
+              {% if resume.city %}<p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ resume.city }}</p>{% endif %}
               {% if resume.summary %}<p>{{ resume.summary }}</p>{% endif %}
-              <a class="btn btn-outline-primary btn-sm" href="{{ url_for('public.user_resume', username=resume.username) }}">查看简历</a>
+              <a class="btn btn-outline-primary btn-sm" href="{{ url_for('public.user_resume', username=resume.username) }}"><i class="bi bi-person-badge"></i> 查看简历</a>
             </article>
           </div>
         {% else %}
