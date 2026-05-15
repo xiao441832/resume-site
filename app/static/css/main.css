@@ -84,6 +84,10 @@ a:hover {
   background: linear-gradient(180deg, #f6f8fb 0%, #ffffff 100%);
 }
 
+.resume-hero {
+  padding-top: 76px;
+}
+
 .hero-summary {
   max-width: 720px;
   color: var(--muted);
@@ -115,6 +119,10 @@ a:hover {
 
 .search-panel {
   border-color: rgba(37, 99, 235, 0.18);
+}
+
+.contact-panel {
+  border-top: 4px solid var(--brand);
 }
 
 .resume-card {
@@ -160,6 +168,11 @@ a:hover {
 .profile-meta dt {
   color: var(--muted);
   font-weight: 500;
+}
+
+.profile-meta i {
+  color: var(--brand);
+  margin-right: 6px;
 }
 
 .profile-meta dd {
@@ -212,7 +225,11 @@ a:hover {
   height: 14px;
   border-radius: 50%;
   background: var(--brand);
-  border: 3px solid var(--soft);
+  border: 3px solid var(--brand-soft);
+}
+
+.resume-section .section-title {
+  color: var(--ink);
 }
 
 .project-card {

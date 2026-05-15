@@ -20,7 +20,7 @@
 </nav>
 
 <main id="home">
-  <section class="hero-section">
+  <section class="hero-section resume-hero">
     <div class="container">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
@@ -36,14 +36,14 @@
             <p class="hero-summary">{{ profile.summary }}</p>
           {% endif %}
           <div class="d-flex flex-wrap gap-2 mt-4">
-            {% if profile.email %}<a class="btn btn-primary" href="mailto:{{ profile.email }}">发送邮件</a>{% endif %}
+            {% if profile.email %}<a class="btn btn-primary" href="mailto:{{ profile.email }}"><i class="bi bi-envelope"></i> 发送邮件</a>{% endif %}
             {% set resume_url = static_upload_url(profile.resume_file_path) %}
-            {% if resume_url %}<a class="btn btn-outline-secondary" href="{{ resume_url }}">下载简历</a>{% endif %}
-            <a class="btn btn-outline-secondary" href="#contact">留言</a>
+            {% if resume_url %}<a class="btn btn-outline-secondary" href="{{ resume_url }}"><i class="bi bi-download"></i> 下载简历</a>{% endif %}
+            <a class="btn btn-outline-secondary" href="#contact"><i class="bi bi-chat-dots"></i> 留言</a>
           </div>
         </div>
         <div class="col-lg-4">
-          <div class="profile-panel">
+          <div class="profile-panel contact-panel">
             {% set avatar_url = static_upload_url(profile.avatar_path) %}
             {% if avatar_url %}
               <img class="profile-avatar" src="{{ avatar_url }}" alt="{{ profile.name }}">
@@ -51,13 +51,13 @@
               <div class="profile-avatar profile-avatar-placeholder">{{ profile.name|default(owner.display_name)|first }}</div>
             {% endif %}
             <dl class="profile-meta mb-0">
-              {% if profile.city %}<div><dt>城市</dt><dd>{{ profile.city }}</dd></div>{% endif %}
-              {% if profile.phone %}<div><dt>电话</dt><dd>{{ profile.phone }}</dd></div>{% endif %}
-              {% if profile.wechat %}<div><dt>微信</dt><dd>{{ profile.wechat }}</dd></div>{% endif %}
+              {% if profile.city %}<div><dt><i class="bi bi-geo-alt"></i>城市</dt><dd>{{ profile.city }}</dd></div>{% endif %}
+              {% if profile.phone %}<div><dt><i class="bi bi-phone"></i>电话</dt><dd>{{ profile.phone }}</dd></div>{% endif %}
+              {% if profile.wechat %}<div><dt><i class="bi bi-wechat"></i>微信</dt><dd>{{ profile.wechat }}</dd></div>{% endif %}
               {% set github_url = safe_public_url(profile.github_url) %}
-              {% if github_url %}<div><dt>GitHub</dt><dd><a href="{{ github_url }}">{{ github_url }}</a></dd></div>{% endif %}
+              {% if github_url %}<div><dt><i class="bi bi-github"></i>GitHub</dt><dd><a href="{{ github_url }}">{{ github_url }}</a></dd></div>{% endif %}
               {% set website_url = safe_public_url(profile.website_url) %}
-              {% if website_url %}<div><dt>网站</dt><dd><a href="{{ website_url }}">{{ website_url }}</a></dd></div>{% endif %}
+              {% if website_url %}<div><dt><i class="bi bi-link-45deg"></i>网站</dt><dd><a href="{{ website_url }}">{{ website_url }}</a></dd></div>{% endif %}
             </dl>
           </div>
         </div>
@@ -65,7 +65,7 @@
     </div>
   </section>
 
-  <section id="skills" class="section-block">
+  <section id="skills" class="section-block resume-section">
     <div class="container">
       <h2 class="section-title">专业技能</h2>
       <div class="row g-4">
@@ -93,7 +93,7 @@
     </div>
   </section>
 
-  <section id="experience" class="section-block bg-soft">
+  <section id="experience" class="section-block bg-soft resume-section">
     <div class="container">
       <h2 class="section-title">工作经历</h2>
       <div class="timeline">
@@ -113,7 +113,7 @@
     </div>
   </section>
 
-  <section id="projects" class="section-block">
+  <section id="projects" class="section-block resume-section">
     <div class="container">
       <h2 class="section-title">项目作品</h2>
       <div class="row g-4">
@@ -147,7 +147,7 @@
     </div>
   </section>
 
-  <section id="education" class="section-block bg-soft">
+  <section id="education" class="section-block bg-soft resume-section">
     <div class="container">
       <div class="row g-4">
         <div class="col-lg-6">
@@ -178,7 +178,7 @@
     </div>
   </section>
 
-  <section id="contact" class="section-block">
+  <section id="contact" class="section-block resume-section">
     <div class="container">
       <div class="row g-4">
         <div class="col-lg-5">
