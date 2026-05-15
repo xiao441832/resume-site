@@ -32,7 +32,7 @@
       </div>
     {% endfor %}
     <div class="col-12 d-flex gap-2">
-      {{ form.submit(class="btn btn-primary") }}
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle me-1"></i>{{ form.submit.label.text }}</button>
       <a class="btn btn-outline-secondary" href="{{ url_for(area ~ '.resource_list', resource=config.key) }}"><i class="bi bi-arrow-left me-1"></i>返回</a>
     </div>
   </div>

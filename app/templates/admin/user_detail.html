@@ -90,7 +90,7 @@
         {{ account_form.ban_reason.label(class="form-label") }}
         {{ account_form.ban_reason(class="form-control", rows=4) }}
       </div>
-      {{ account_form.submit(class="btn btn-primary") }}
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle me-1"></i>{{ account_form.submit.label.text }}</button>
     </form>
   </div>
 
@@ -106,7 +106,7 @@
         {{ publish_form.publish_ban_reason.label(class="form-label") }}
         {{ publish_form.publish_ban_reason(class="form-control", rows=4) }}
       </div>
-      {{ publish_form.submit(class="btn btn-primary") }}
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle me-1"></i>{{ publish_form.submit.label.text }}</button>
     </form>
   </div>
 
@@ -122,7 +122,7 @@
         {{ resume_form.public_block_reason.label(class="form-label") }}
         {{ resume_form.public_block_reason(class="form-control", rows=4) }}
       </div>
-      {{ resume_form.submit(class="btn btn-primary") }}
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle me-1"></i>{{ resume_form.submit.label.text }}</button>
     </form>
   </div>
 </div>
