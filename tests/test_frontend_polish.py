@@ -82,14 +82,62 @@ def test_public_resume_uses_polished_resume_components(client, monkeypatch):
                 "email": "demo@example.com",
                 "phone": "13800138000",
                 "wechat": "demo",
+                "github_url": "https://github.com/demo",
+                "website_url": "https://example.com",
+                "avatar_path": "",
+                "resume_file_path": "",
+                "summary": "热爱后端开发，关注 Flask 和 MySQL。",
+                "job_status": "正在寻找机会",
+            },
+            "skills_by_category": {"后端": [{"name": "Flask", "proficiency": 90}]},
+            "experiences": [{"company": "演示公司", "position": "后端实习生", "location": "杭州", "description": "参与后台开发。"}],
+            "projects": [{"name": "简历系统", "role": "开发", "tech_stack": "Flask", "project_url": "", "source_url": "", "cover_image_path": "", "summary": "多用户简历展示。"}],
+            "education": [{"school": "演示大学", "major": "软件工程", "degree": "本科", "description": "学习 Web 开发。"}],
+            "certificates": [{"name": "Web 开发证书", "issuer": "演示机构", "issue_date": "2026-05-16", "description": "项目实践。"}],
+            "settings": {"site_title": "简历系统", "messages_enabled": "1"},
+        },
+    )
+
+    response = client.get("/u/demo")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "public-navbar" in html
+    assert "resume-hero" in html
+    assert "resume-hero-layout" in html
+    assert "resume-actions" in html
+    assert "profile-panel-sticky" in html
+    assert "contact-panel" in html
+    assert "resume-module" in html
+    assert "module-title" in html
+    assert "contact-card" in html
+    assert "contact-form-card" in html
+    assert "bi-envelope" in html
+    assert "bi-chat-dots" in html
+    assert 'href="mailto:demo@example.com"' in html
+    assert 'href="https://github.com/demo"' in html
+
+
+def test_public_resume_uses_polished_empty_module_states(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.public.routes.load_user_resume_data",
+        lambda username: {
+            "owner": {"id": 2, "username": "demo", "display_name": "演示用户"},
+            "profile": {
+                "name": "张三",
+                "title": "Python 工程师",
+                "city": "",
+                "email": "",
+                "phone": "",
+                "wechat": "",
                 "github_url": "",
                 "website_url": "",
                 "avatar_path": "",
                 "resume_file_path": "",
-                "summary": "热爱后端开发。",
-                "job_status": "正在寻找机会",
+                "summary": "",
+                "job_status": "",
             },
-            "skills_by_category": {"后端": [{"name": "Flask", "proficiency": 90}]},
+            "skills_by_category": {},
             "experiences": [],
             "projects": [],
             "education": [],
@@ -102,11 +150,8 @@ def test_public_resume_uses_polished_resume_components(client, monkeypatch):
 
     html = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "resume-hero" in html
-    assert "contact-panel" in html
-    assert "resume-section" in html
-    assert "bi-envelope" in html
-    assert "bi-chat-dots" in html
+    assert html.count("module-empty-state") >= 5
+    assert "该模块暂未填写，完善后将在此展示。" in html
 
 
 def test_admin_pages_load_bootstrap_icons(client, monkeypatch):

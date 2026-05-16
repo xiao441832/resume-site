@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 
 {% block body %}
-<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+<nav class="navbar public-navbar navbar-expand-lg sticky-top">
   <div class="container">
     <a class="navbar-brand fw-semibold" href="{{ url_for('public.index') }}">{{ settings.site_title|default('多用户简历系统') }}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="切换导航">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="#skills">技能</a></li>
-        <li class="nav-item"><a class="nav-link" href="#experience">经历</a></li>
-        <li class="nav-item"><a class="nav-link" href="#projects">项目</a></li>
-        <li class="nav-item"><a class="nav-link" href="#education">教育</a></li>
-        <li class="nav-item"><a class="nav-link" href="#contact">联系</a></li>
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+        <li class="nav-item"><a class="public-nav-link" href="{{ url_for('public.index') }}">首页</a></li>
+        <li class="nav-item"><a class="public-nav-link" href="{{ url_for('public.index') }}#public-resumes">公开简历</a></li>
+        <li class="nav-item"><a class="public-nav-link" href="#skills">技能</a></li>
+        <li class="nav-item"><a class="public-nav-link" href="#projects">项目</a></li>
+        <li class="nav-item"><a class="public-nav-link" href="#contact">联系</a></li>
+        <li class="nav-item"><a class="btn btn-outline-primary btn-sm ms-lg-2" href="{{ url_for('auth.login') }}">登录</a></li>
+        <li class="nav-item"><a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">注册</a></li>
       </ul>
     </div>
   </div>
@@ -27,15 +29,18 @@
           <div class="alert alert-{{ category }} mb-4">{{ message }}</div>
         {% endfor %}
       {% endwith %}
-      <div class="row align-items-center g-4">
+      <div class="row align-items-start g-4 resume-hero-layout">
         <div class="col-lg-8">
-          <p class="text-uppercase text-muted small mb-2">{{ profile.job_status|default('开放机会') }}</p>
+          <p class="eyebrow mb-2">{{ profile.job_status|default('开放机会') }}</p>
           <h1 class="display-5 fw-bold mb-3">{{ profile.name|default(owner.display_name) }}</h1>
           <p class="lead mb-3">{{ profile.title|default('') }}</p>
           {% if profile.summary %}
             <p class="hero-summary">{{ profile.summary }}</p>
+          {% else %}
+            <p class="hero-summary text-muted">该用户暂未填写个人简介，完善后将在这里展示。</p>
           {% endif %}
-          <div class="d-flex flex-wrap gap-2 mt-4">
+          <div class="d-flex flex-wrap gap-2 mt-4 resume-actions">
+            <a class="btn btn-outline-secondary" href="{{ url_for('public.index') }}"><i class="bi bi-house"></i> 返回首页</a>
             {% if profile.email %}<a class="btn btn-primary" href="mailto:{{ profile.email }}"><i class="bi bi-envelope"></i> 发送邮件</a>{% endif %}
             {% set resume_url = static_upload_url(profile.resume_file_path) %}
             {% if resume_url %}<a class="btn btn-outline-secondary" href="{{ resume_url }}"><i class="bi bi-download"></i> 下载简历</a>{% endif %}
@@ -43,7 +48,7 @@
           </div>
         </div>
         <div class="col-lg-4">
-          <div class="profile-panel contact-panel">
+          <div class="profile-panel contact-panel profile-panel-sticky">
             {% set avatar_url = static_upload_url(profile.avatar_path) %}
             {% if avatar_url %}
               <img class="profile-avatar" src="{{ avatar_url }}" alt="{{ profile.name }}">
@@ -52,6 +57,7 @@
             {% endif %}
             <dl class="profile-meta mb-0">
               {% if profile.city %}<div><dt><i class="bi bi-geo-alt"></i>城市</dt><dd>{{ profile.city }}</dd></div>{% endif %}
+              {% if profile.email %}<div><dt><i class="bi bi-envelope"></i>邮箱</dt><dd><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></dd></div>{% endif %}
               {% if profile.phone %}<div><dt><i class="bi bi-phone"></i>电话</dt><dd>{{ profile.phone }}</dd></div>{% endif %}
               {% if profile.wechat %}<div><dt><i class="bi bi-wechat"></i>微信</dt><dd>{{ profile.wechat }}</dd></div>{% endif %}
               {% set github_url = safe_public_url(profile.github_url) %}
@@ -67,11 +73,13 @@
 
   <section id="skills" class="section-block resume-section">
     <div class="container">
-      <h2 class="section-title">专业技能</h2>
+      <div class="module-heading">
+        <h2 class="section-title module-title"><i class="bi bi-lightning-charge"></i> 专业技能</h2>
+      </div>
       <div class="row g-4">
         {% for category, skills in skills_by_category.items() %}
           <div class="col-lg-6">
-            <div class="content-card h-100">
+            <div class="content-card resume-module h-100">
               <h3 class="h5 mb-3">{{ category }}</h3>
               {% for skill in skills %}
                 <div class="skill-row">
@@ -87,7 +95,9 @@
             </div>
           </div>
         {% else %}
-          <p class="text-muted">技能信息正在整理中。</p>
+          <div class="col-12">
+            <div class="content-card module-empty-state">该模块暂未填写，完善后将在此展示。</div>
+          </div>
         {% endfor %}
       </div>
     </div>
@@ -95,19 +105,21 @@
 
   <section id="experience" class="section-block bg-soft resume-section">
     <div class="container">
-      <h2 class="section-title">工作经历</h2>
+      <div class="module-heading">
+        <h2 class="section-title module-title"><i class="bi bi-briefcase"></i> 工作经历</h2>
+      </div>
       <div class="timeline">
         {% for item in experiences %}
           <article class="timeline-item">
             <div class="timeline-dot"></div>
-            <div class="content-card">
+            <div class="content-card resume-module">
               <h3 class="h5 mb-1">{{ item.position }}</h3>
               <p class="text-muted mb-2">{{ item.company }}{% if item.location %} · {{ item.location }}{% endif %}</p>
               {% if item.description %}<p class="mb-0">{{ item.description }}</p>{% endif %}
             </div>
           </article>
         {% else %}
-          <p class="text-muted">经历信息正在整理中。</p>
+          <div class="content-card module-empty-state">该模块暂未填写，完善后将在此展示。</div>
         {% endfor %}
       </div>
     </div>
@@ -115,11 +127,13 @@
 
   <section id="projects" class="section-block resume-section">
     <div class="container">
-      <h2 class="section-title">项目作品</h2>
+      <div class="module-heading">
+        <h2 class="section-title module-title"><i class="bi bi-window-stack"></i> 项目作品</h2>
+      </div>
       <div class="row g-4">
         {% for project in projects %}
           <div class="col-md-6 col-xl-4">
-            <article class="content-card project-card h-100">
+            <article class="content-card project-card resume-module h-100">
               {% set cover_url = static_upload_url(project.cover_image_path) %}
               {% if cover_url %}
                 <img class="project-cover" src="{{ cover_url }}" alt="{{ project.name }}">
@@ -141,7 +155,9 @@
             </article>
           </div>
         {% else %}
-          <p class="text-muted">项目作品正在整理中。</p>
+          <div class="col-12">
+            <div class="content-card module-empty-state">该模块暂未填写，完善后将在此展示。</div>
+          </div>
         {% endfor %}
       </div>
     </div>
@@ -151,27 +167,31 @@
     <div class="container">
       <div class="row g-4">
         <div class="col-lg-6">
-          <h2 class="section-title">教育背景</h2>
+          <div class="module-heading">
+            <h2 class="section-title module-title"><i class="bi bi-mortarboard"></i> 教育背景</h2>
+          </div>
           {% for item in education %}
-            <article class="content-card mb-3">
+            <article class="content-card resume-module mb-3">
               <h3 class="h5 mb-1">{{ item.school }}</h3>
               <p class="text-muted mb-2">{{ item.degree }} {{ item.major }}</p>
               {% if item.description %}<p class="mb-0">{{ item.description }}</p>{% endif %}
             </article>
           {% else %}
-            <p class="text-muted">教育信息正在整理中。</p>
+            <div class="content-card module-empty-state">该模块暂未填写，完善后将在此展示。</div>
           {% endfor %}
         </div>
         <div class="col-lg-6">
-          <h2 class="section-title">证书荣誉</h2>
+          <div class="module-heading">
+            <h2 class="section-title module-title"><i class="bi bi-award"></i> 证书荣誉</h2>
+          </div>
           {% for cert in certificates %}
-            <article class="content-card mb-3">
+            <article class="content-card resume-module mb-3">
               <h3 class="h5 mb-1">{{ cert.name }}</h3>
               <p class="text-muted mb-2">{{ cert.issuer }}{% if cert.issue_date %} · {{ cert.issue_date }}{% endif %}</p>
               {% if cert.description %}<p class="mb-0">{{ cert.description }}</p>{% endif %}
             </article>
           {% else %}
-            <p class="text-muted">证书信息正在整理中。</p>
+            <div class="content-card module-empty-state">该模块暂未填写，完善后将在此展示。</div>
           {% endfor %}
         </div>
       </div>
@@ -180,42 +200,46 @@
 
   <section id="contact" class="section-block resume-section">
     <div class="container">
-      <div class="row g-4">
-        <div class="col-lg-5">
-          <h2 class="section-title">联系我</h2>
-          <p class="text-muted">欢迎通过邮件、电话或留言沟通合作机会。</p>
-          {% if profile.email %}<p class="mb-2"><strong>邮箱：</strong><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></p>{% endif %}
-          {% if profile.phone %}<p class="mb-0"><strong>电话：</strong>{{ profile.phone }}</p>{% endif %}
-        </div>
-        <div class="col-lg-7">
-          {% if settings.messages_enabled|default('1') == '1' %}
-            <form class="content-card message-form" method="post" action="{{ url_for('public.submit_message', username=owner.username) }}">
-              {{ form.hidden_tag() }}
-              <div class="row g-3">
-                <div class="col-md-6">
-                  {{ form.name.label(class="form-label") }}
-                  {{ form.name(class="form-control", autocomplete="name") }}
+      <div class="module-heading">
+        <h2 class="section-title module-title"><i class="bi bi-chat-dots"></i> 联系我</h2>
+      </div>
+      <div class="content-card contact-card">
+        <div class="row g-4 align-items-start">
+          <div class="col-lg-5">
+            <p class="text-muted">欢迎通过邮件、电话或留言沟通合作机会。</p>
+            <div class="contact-list">
+              {% if profile.email %}<div><span>邮箱</span><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></div>{% endif %}
+              {% if profile.phone %}<div><span>电话</span><strong>{{ profile.phone }}</strong></div>{% endif %}
+            </div>
+          </div>
+          <div class="col-lg-7">
+            {% if settings.messages_enabled|default('1') == '1' %}
+              <form class="contact-form-card message-form" method="post" action="{{ url_for('public.submit_message', username=owner.username) }}">
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control", autocomplete="name") }}
+                  </div>
+                  <div class="col-md-6">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", autocomplete="email") }}
+                  </div>
+                  <div class="col-12">
+                    {{ form.phone.label(class="form-label") }}
+                    {{ form.phone(class="form-control", autocomplete="tel") }}
+                  </div>
+                  <div class="col-12">
+                    {{ form.content.label(class="form-label") }}
+                    {{ form.content(class="form-control", rows="5") }}
+                  </div>
                 </div>
-                <div class="col-md-6">
-                  {{ form.email.label(class="form-label") }}
-                  {{ form.email(class="form-control", autocomplete="email") }}
-                </div>
-                <div class="col-12">
-                  {{ form.phone.label(class="form-label") }}
-                  {{ form.phone(class="form-control", autocomplete="tel") }}
-                </div>
-                <div class="col-12">
-                  {{ form.content.label(class="form-label") }}
-                  {{ form.content(class="form-control", rows="5") }}
-                </div>
-                <div class="col-12">
-                  {{ form.submit(class="btn btn-primary") }}
-                </div>
-              </div>
-            </form>
-          {% else %}
-            <div class="content-card"><p class="mb-0 text-muted">留言功能暂未开放。</p></div>
-          {% endif %}
+                <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> {{ form.submit.label.text }}</button>
+              </form>
+            {% else %}
+              <div class="module-empty-state">留言功能暂未开放。</div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>

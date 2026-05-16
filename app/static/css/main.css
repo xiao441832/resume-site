@@ -257,6 +257,95 @@ a:hover {
   min-width: 0;
 }
 
+.resume-hero-layout {
+  position: relative;
+}
+
+.resume-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-panel-sticky {
+  position: sticky;
+  top: 88px;
+}
+
+.profile-panel.contact-panel {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.module-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.module-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.module-title i {
+  color: var(--brand);
+}
+
+.resume-module {
+  height: 100%;
+}
+
+.module-empty-state {
+  display: grid;
+  min-height: 120px;
+  place-items: center;
+  color: var(--muted);
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.contact-card {
+  border-radius: var(--radius);
+}
+
+.contact-list {
+  display: grid;
+  gap: 12px;
+}
+
+.contact-list div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.contact-list span {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.contact-list a,
+.contact-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.contact-form-card {
+  padding: 0;
+}
+
+.contact-form-card .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+}
+
 .profile-panel {
   display: grid;
   gap: 20px;
