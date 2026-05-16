@@ -4,7 +4,8 @@
 <nav class="navbar public-navbar navbar-expand-lg sticky-top">
   <div class="container">
     <a class="navbar-brand fw-semibold" href="{{ url_for('public.index') }}">{{ settings.site_title|default('多用户简历系统') }}</a>
-    <div class="d-flex gap-2">
+    <div class="d-flex align-items-center gap-2 ms-auto public-nav-actions">
+      <a class="public-nav-link active" href="{{ url_for('public.index') }}#public-resumes">公开简历</a>
       <a class="btn btn-outline-primary btn-sm" href="{{ url_for('auth.login') }}">登录</a>
       <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">注册</a>
     </div>
@@ -24,11 +25,19 @@
           <p class="eyebrow mb-2">Resume Platform</p>
           <h1 class="display-5 fw-bold mb-3">{{ settings.site_title|default('多用户在线简历管理系统') }}</h1>
           <p class="lead hero-summary mb-0">维护简历内容，生成公开展示页面，让作品和经历更清楚地呈现。</p>
+          <div class="hero-feature-list">
+            <div class="hero-feature"><i class="bi bi-people"></i><span>多用户</span></div>
+            <div class="hero-feature"><i class="bi bi-window-check"></i><span>公开展示</span></div>
+            <div class="hero-feature"><i class="bi bi-shield-check"></i><span>安全可靠</span></div>
+          </div>
         </div>
         <div class="col-lg-5">
           <form class="content-card search-panel" method="get" action="{{ url_for('public.index') }}">
-            <label class="form-label" for="q">搜索公开简历</label>
-            <div class="input-group">
+            <div class="mb-3">
+              <label class="form-label mb-1" for="q">搜索公开简历</label>
+              <div class="text-muted small">按姓名、岗位、城市或简介快速查找。</div>
+            </div>
+            <div class="input-group search-control">
               <input id="q" class="form-control" type="search" name="q" value="{{ keyword }}" placeholder="姓名、岗位、城市或简介">
               <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> 搜索</button>
             </div>
@@ -41,29 +50,39 @@
   <section id="public-resumes" class="section-block">
     <div class="container">
       <h2 class="section-title">公开简历</h2>
-      <div class="row g-4">
+      <div class="row g-4 resume-grid">
         {% for resume in resumes %}
-          <div class="col-md-6 col-xl-4">
+          <div class="col-12 col-md-6 col-xl-4">
             <article class="content-card resume-card h-100">
-              <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="resume-card-header">
                 {% set avatar_url = static_upload_url(resume.avatar_path) %}
                 {% if avatar_url %}
-                  <img class="profile-avatar" src="{{ avatar_url }}" alt="{{ resume.name or resume.display_name }}">
+                  <img class="resume-avatar" src="{{ avatar_url }}" alt="{{ resume.name or resume.display_name }}">
                 {% else %}
-                  <div class="profile-avatar profile-avatar-placeholder">{{ (resume.name or resume.display_name)|first }}</div>
+                  <div class="resume-avatar resume-avatar-placeholder">{{ (resume.name or resume.display_name)|first }}</div>
                 {% endif %}
-                <div>
-                  <h3 class="h5 mb-1">{{ resume.name or resume.display_name }}</h3>
-                  <p class="text-muted mb-0">{{ resume.title }}</p>
+                <div class="min-w-0">
+                  <h3 class="h5 mb-1 text-truncate">{{ resume.name or resume.display_name }}</h3>
+                  <p class="text-muted mb-0 text-truncate">{{ resume.title }}</p>
                 </div>
               </div>
               {% if resume.city %}<p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ resume.city }}</p>{% endif %}
-              {% if resume.summary %}<p>{{ resume.summary }}</p>{% endif %}
-              <a class="btn btn-outline-primary btn-sm" href="{{ url_for('public.user_resume', username=resume.username) }}"><i class="bi bi-person-badge"></i> 查看简历</a>
+              {% if resume.summary %}
+                <p class="resume-card-summary">{{ resume.summary }}</p>
+              {% else %}
+                <p class="resume-card-summary text-muted">该用户暂未填写个人简介。</p>
+              {% endif %}
+              <a class="btn btn-outline-primary btn-sm resume-card-action" href="{{ url_for('public.user_resume', username=resume.username) }}"><i class="bi bi-person-badge"></i> 查看简历</a>
             </article>
           </div>
         {% else %}
-          <p class="text-muted">暂无公开简历。</p>
+          <div class="col-12">
+            <div class="content-card empty-state">
+              <i class="bi bi-folder2-open"></i>
+              <h3 class="h5 mb-2">暂无公开简历</h3>
+              <p class="mb-0 text-muted">用户公开发布后将在这里展示。</p>
+            </div>
+          </div>
         {% endfor %}
       </div>
     </div>

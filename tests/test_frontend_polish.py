@@ -28,7 +28,7 @@ def test_public_homepage_uses_polished_landing_components(client, monkeypatch):
                 "name": "张三",
                 "title": "Python 工程师",
                 "city": "杭州",
-                "summary": "关注 Flask 和 MySQL 项目。",
+                "summary": "关注 Flask 和 MySQL 项目，能够独立完成简历系统开发和部署。",
                 "avatar_path": "",
             }
         ],
@@ -38,11 +38,36 @@ def test_public_homepage_uses_polished_landing_components(client, monkeypatch):
 
     html = response.get_data(as_text=True)
     assert response.status_code == 200
+    assert "public-navbar" in html
+    assert "public-nav-link" in html
     assert "public-hero" in html
+    assert "hero-feature-list" in html
+    assert "hero-feature" in html
     assert "search-panel" in html
+    assert "search-control" in html
+    assert "resume-grid" in html
     assert "resume-card" in html
+    assert "resume-card-header" in html
+    assert "resume-card-summary" in html
+    assert "resume-card-action" in html
+    assert "resume-avatar" in html
     assert "bi-search" in html
-    assert "bi-person-badge" in html
+    assert "bi-people" in html
+    assert "bi-shield-check" in html
+    assert 'href="/u/demo"' in html
+
+
+def test_public_homepage_uses_polished_empty_state(client, monkeypatch):
+    monkeypatch.setattr("app.public.routes.get_settings", lambda: {"site_title": "简历系统"})
+    monkeypatch.setattr("app.public.routes.load_public_resumes", lambda keyword="": [])
+
+    response = client.get("/")
+
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "empty-state" in html
+    assert "暂无公开简历" in html
+    assert "用户公开发布后将在这里展示" in html
 
 
 def test_public_resume_uses_polished_resume_components(client, monkeypatch):

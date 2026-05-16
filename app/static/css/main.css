@@ -13,6 +13,9 @@
   --danger: #ef4444;
   --sidebar: #152238;
   --sidebar-muted: #94a3b8;
+  --shadow-sm: 0 8px 22px rgba(21, 34, 56, 0.06);
+  --shadow-md: 0 16px 36px rgba(21, 34, 56, 0.09);
+  --radius: 10px;
 }
 
 body {
@@ -68,8 +71,35 @@ a:hover {
 }
 
 .public-navbar {
+  min-height: 64px;
+  border-bottom: 1px solid rgba(220, 227, 237, 0.75);
   backdrop-filter: blur(16px);
   background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.public-nav-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.public-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.public-nav-link:hover,
+.public-nav-link:focus,
+.public-nav-link.active {
+  color: var(--brand);
+  background: var(--brand-soft);
+  text-decoration: none;
 }
 
 .eyebrow {
@@ -81,7 +111,8 @@ a:hover {
 }
 
 .public-hero {
-  background: linear-gradient(180deg, #f6f8fb 0%, #ffffff 100%);
+  border-bottom: 1px solid rgba(220, 227, 237, 0.65);
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
 }
 
 .resume-hero {
@@ -92,6 +123,30 @@ a:hover {
   max-width: 720px;
   color: var(--muted);
   line-height: 1.8;
+}
+
+.hero-feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.hero-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
+.hero-feature i {
+  color: var(--brand);
 }
 
 .section-block {
@@ -119,6 +174,8 @@ a:hover {
 
 .search-panel {
   border-color: rgba(37, 99, 235, 0.18);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
 }
 
 .contact-panel {
@@ -128,11 +185,76 @@ a:hover {
 .resume-card {
   display: flex;
   flex-direction: column;
+  min-height: 320px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.resume-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(37, 99, 235, 0.22);
+  box-shadow: var(--shadow-md);
 }
 
 .resume-card .btn {
   margin-top: auto;
   width: fit-content;
+}
+
+.resume-card-header {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.resume-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--soft);
+}
+
+.resume-avatar-placeholder {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.resume-card-summary {
+  display: -webkit-box;
+  min-height: 6rem;
+  margin-bottom: 18px;
+  overflow: hidden;
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.resume-card-action {
+  align-self: flex-start;
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  text-align: center;
+}
+
+.empty-state i {
+  margin-bottom: 12px;
+  color: var(--brand);
+  font-size: 2rem;
+}
+
+.min-w-0 {
+  min-width: 0;
 }
 
 .profile-panel {
