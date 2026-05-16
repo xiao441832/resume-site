@@ -589,6 +589,45 @@ a:hover {
     padding: 18px;
   }
 
+  .public-nav-actions {
+    width: 100%;
+  }
+
+  .search-control {
+    display: grid;
+    gap: 10px;
+  }
+
+  .search-control .form-control,
+  .search-control .btn {
+    width: 100%;
+    border-radius: 8px !important;
+  }
+
+  .hero-feature-list {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .resume-card {
+    min-height: auto;
+  }
+
+  .resume-card-header {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .resume-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .contact-list div,
+  .profile-meta div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
   .table-responsive {
     border-radius: 8px;
   }
@@ -600,6 +639,21 @@ a:hover {
 }
 
 @media (max-width: 991.98px) {
+  .profile-panel-sticky {
+    position: static;
+  }
+
+  .public-navbar .navbar-nav {
+    align-items: stretch !important;
+    padding-top: 12px;
+  }
+
+  .public-navbar .navbar-nav .btn,
+  .public-nav-link {
+    justify-content: center;
+    width: 100%;
+  }
+
   .admin-sidebar {
     min-height: auto !important;
   }
