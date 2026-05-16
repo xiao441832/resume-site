@@ -649,7 +649,7 @@ a:hover {
   }
 
   .public-navbar .navbar-nav .btn,
-  .public-nav-link {
+  .public-navbar .public-nav-link {
     justify-content: center;
     width: 100%;
   }
